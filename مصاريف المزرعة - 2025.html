@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحليل مصروفات المزرعة والإبل 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c7744, #1e5631);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c7744;
+        }
+        
+        .card.total .value {
+            color: #1e5631;
+        }
+        
+        .card.average .value {
+            color: #3a8b5c;
+        }
+        
+        .card.max .value {
+            color: #d9534f;
+        }
+        
+        .filters {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        select, input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #2c7744;
+            text-align: center;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .data-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c7744;
+        }
+        
+        tr:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 8px 15px;
+            background-color: #2c7744;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .pagination button:hover {
+            background-color: #1e5631;
+        }
+        
+        .pagination button.active {
+            background-color: #1e5631;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>لوحة تحليل مصروفات المزرعة والإبل 2025</h1>
+            <p class="subtitle">تحليل شامل للمصروفات وتوزيعها حسب النوع والشهر</p>
+        </header>
+        
+        <div class="summary-cards">
+            <div class="card total">
+                <h3>إجمالي المصروفات</h3>
+                <div class="value">2,578,009 ريال</div>
+            </div>
+            <div class="card">
+                <h3>متوسط المصروفات الشهرية</h3>
+                <div class="value">214,834 ريال</div>
+            </div>
+            <div class="card">
+                <h3>أعلى مصروف</h3>
+                <div class="value">103,200 ريال</div>
+            </div>
+            <div class="card">
+                <h3>عدد المعاملات</h3>
+                <div class="value">338 معاملة</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="monthFilter">الشهر</label>
+                <select id="monthFilter">
+                    <option value="all">جميع الأشهر</option>
+                    <option value="1">يناير</option>
+                    <option value="2">فبراير</option>
+                    <option value="3">مارس</option>
+                    <option value="4">أبريل</option>
+                    <option value="5">مايو</option>
+                    <option value="6">يونيو</option>
+                    <option value="7">يوليو</option>
+                    <option value="8">أغسطس</option>
+                    <option value="9">سبتمبر</option>
+                    <option value="10">أكتوبر</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="categoryFilter">نوع المصروف</label>
+                <select id="categoryFilter">
+                    <option value="all">جميع الأنواع</option>
+                    <option value="ابل">الإبل</option>
+                    <option value="غنم">الغنم</option>
+                    <option value="مزرعة">المزرعة</option>
+                    <option value="عمال">العمال</option>
+                    <option value="صيانة">الصيانة</option>
+                    <option value="أعلاف">الأعلاف</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="amountFilter">نطاق المبلغ</label>
+                <select id="amountFilter">
+                    <option value="all">جميع المبالغ</option>
+                    <option value="0-1000">أقل من 1,000 ريال</option>
+                    <option value="1000-5000">1,000 - 5,000 ريال</option>
+                    <option value="5000-10000">5,000 - 10,000 ريال</option>
+                    <option value="10000-50000">10,000 - 50,000 ريال</option>
+                    <option value="50000+">أكثر من 50,000 ريال</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="search">بحث في البيان</label>
+                <input type="text" id="search" placeholder="أدخل كلمة للبحث...">
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h2>توزيع المصروفات حسب النوع</h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>المصروفات الشهرية</h2>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>أكبر 10 مصروفات</h2>
+                <div class="chart-container">
+                    <canvas id="topExpensesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>المصروفات بدون فواتير مقابل المصروفات مع فواتير</h2>
+                <div class="chart-container">
+                    <canvas id="invoiceChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table-container">
+            <h2>تفاصيل المصروفات</h2>
+            <table id="expensesTable">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>التاريخ</th>
+                        <th>البيان</th>
+                        <th>المبلغ</th>
+                        <th>النوع</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- سيتم ملء الجدول بالبيانات من خلال JavaScript -->
+                </tbody>
+            </table>
+            
+            <div class="pagination" id="pagination">
+                <!-- سيتم إنشاء أزرار الترقيم من خلال JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // البيانات المستخرجة من الجدول المقدم
+        const expensesData = [
+            { id: 1, date: '2025-01-06', description: 'تحويل الى ورشة ذيب حسن هيف', amount: 0, category: 'صيانة' },
+            { id: 2, date: '2025-01-06', description: 'تحويل الى منيف الاسعدى', amount: 11100, category: 'عمال' },
+            { id: 3, date: '2025-01-04', description: 'فاتورة الابل', amount: 655, category: 'ابل' },
+            { id: 4, date: '2024-12-29', description: 'فواتير الابل ابوبكر', amount: 1885, category: 'ابل' },
+            { id: 5, date: '2024-12-31', description: 'فواتير الابل', amount: 4947, category: 'ابل' },
+            { id: 6, date: '2025-01-05', description: 'مصاريف بدون فواتير', amount: 82177, category: 'مزرعة' },
+            { id: 7, date: '2025-01-02', description: 'دفايه زيت', amount: 350, category: 'مزرعة' },
+            { id: 8, date: '2024-12-17', description: 'مواد سباكه مزرعة العنادية', amount: 55, category: 'مزرعة' },
+            { id: 9, date: '2025-01-02', description: 'مواد سباكه الابل', amount: 41, category: 'ابل' },
+            { id: 10, date: '2025-01-12', description: 'شراء برسيم ورودس', amount: 14620, category: 'أعلاف' },
+            { id: 11, date: '2025-01-12', description: 'شراء شعير للابل', amount: 25600, category: 'أعلاف' },
+            { id: 12, date: '2025-01-12', description: 'تحويل الى مؤسسة اختصاصنا ( تسويه فواتير )', amount: 16300, category: 'مزرعة' },
+            { id: 13, date: '2025-01-05', description: 'فواتير الابل', amount: 462, category: 'ابل' },
+            { id: 14, date: '2024-12-26', description: 'فواتير ابوحوش', amount: 1147, category: 'مزرعة' },
+            { id: 15, date: '2025-01-04', description: 'فواتير الابل', amount: 2162, category: 'ابل' },
+            { id: 16, date: '2024-12-18', description: 'فواتير محمد حسين', amount: 641, category: 'مزرعة' },
+            { id: 17, date: '2024-12-28', description: 'فواتير المزرعة الجديدة', amount: 420, category: 'مزرعة' },
+            { id: 18, date: '2025-09-01', description: 'فاتورة المراعى دجاج', amount: 900, category: 'مزرعة' },
+            { id: 19, date: '2025-01-20', description: 'شراء شعير للغنم العنادية', amount: 6250, category: 'أعلاف' },
+            { id: 20, date: '2025-01-17', description: 'تسويه فواتير شركة عبدالله ابراهيم جماز', amount: 2755, category: 'مزرعة' },
+            { id: 21, date: '2025-12-01', description: 'فواتير الابل', amount: 1976, category: 'ابل' },
+            { id: 22, date: '2025-01-14', description: 'فواتير الابل', amount: 2554, category: 'ابل' },
+            { id: 23, date: '2025-12-26', description: 'فواتير', amount: 1134, category: 'مزرعة' },
+            { id: 24, date: '2025-12-01', description: 'مصاريف بدون فواتير', amount: 9876, category: 'مزرعة' },
+            { id: 25, date: '2025-01-20', description: 'مصاريف بدون فواتير', amount: 34275, category: 'مزرعة' },
+            { id: 26, date: '2025-01-14', description: 'فواتير', amount: 1533, category: 'مزرعة' },
+            { id: 27, date: '2025-12-01', description: 'فواتير', amount: 633, category: 'مزرعة' },
+            { id: 28, date: '2025-01-18', description: 'فواتير', amount: 1228, category: 'مزرعة' },
+            { id: 29, date: '2025-01-19', description: 'فواتير الابل', amount: 457, category: 'ابل' },
+            { id: 30, date: '2025-07-01', description: 'فواتير', amount: 1318, category: 'مزرعة' },
+            { id: 31, date: '2025-01-26', description: 'تحويل الى شركة عبدالله ابراهيم', amount: 450, category: 'مزرعة' },
+            { id: 32, date: '2025-01-28', description: 'تحويل الى سالم نايف سالم ( فيتامينات للغنم )', amount: 1140, category: 'غنم' },
+            { id: 33, date: '', description: 'تحويل الى عبدالرحمن ابراهيم ضويان ( شراء 20 كيس يوريا )', amount: 2300, category: 'مزرعة' },
+            { id: 34, date: '2025-01-25', description: 'مصاريف بدون فواتير', amount: 4540, category: 'مزرعة' },
+            { id: 35, date: '2025-01-25', description: 'مصاريف بدون فواتير', amount: 22312, category: 'مزرعة' },
+            { id: 36, date: '2025-02-02', description: 'تحويل الى م مبارك عيد ( فلاتر وزيت للدحوه )', amount: 1215, category: 'صيانة' },
+            { id: 37, date: '2025-01-31', description: 'رواتب عمال الغنم + عمال الابل', amount: 12600, category: 'عمال' },
+            { id: 38, date: '2025-02-04', description: 'تحوي الى عبدالمجيد فارس ( 100 كيس شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 39, date: '2025-02-06', description: 'تحويل الى عبدالرحمن ابراهيم ضويان ( شراء يوريا للدحوه )', amount: 1755, category: 'مزرعة' },
+            { id: 40, date: '2025-01-17', description: 'فواتير المزرعة الجديدة', amount: 13451, category: 'مزرعة' },
+            { id: 41, date: '2025-01-26', description: 'فواتير الابل', amount: 6903, category: 'ابل' },
+            { id: 42, date: '2025-02-04', description: 'مصاريف بدون فواتير', amount: 18337, category: 'مزرعة' },
+            { id: 43, date: '2025-02-04', description: 'مصاريف بدون فواتير', amount: 2800, category: 'مزرعة' },
+            { id: 44, date: '2025-01-26', description: 'فواتير احمد', amount: 187, category: 'مزرعة' },
+            { id: 45, date: '2025-02-05', description: 'فواتير ابوبكر الابل', amount: 478, category: 'ابل' },
+            { id: 46, date: '2025-02-05', description: 'فواتير', amount: 1872, category: 'مزرعة' },
+            { id: 47, date: '2025-02-01', description: 'فواتير المزرعة الجديدة', amount: 4764, category: 'مزرعة' },
+            { id: 48, date: '2025-02-01', description: 'شغل عمال + شيول المزرعة الجديدة + اسطبل الخيل', amount: 3400, category: 'عمال' },
+            { id: 49, date: '2025-01-26', description: 'فواتير راجو', amount: 654, category: 'مزرعة' },
+            { id: 50, date: '2025-01-26', description: 'فاتورة الابل', amount: 600, category: 'ابل' },
+            { id: 51, date: '2025-02-08', description: 'شراء علف للغنم', amount: 10400, category: 'أعلاف' },
+            { id: 52, date: '2025-02-05', description: 'فواتير الابل والدحوه', amount: 10482, category: 'ابل' },
+            { id: 53, date: '2025-02-11', description: 'فواتير الابل', amount: 2202, category: 'ابل' },
+            { id: 54, date: '2025-02-08', description: 'فواتير ابوبكر الابل', amount: 2085, category: 'ابل' },
+            { id: 55, date: '2025-02-06', description: 'مصاريف بدون فواتير', amount: 20148, category: 'مزرعة' },
+            { id: 56, date: '2025-02-12', description: 'مصاريف بدون فواتير', amount: 21655, category: 'مزرعة' },
+            { id: 57, date: '2025-02-15', description: 'تحويل دفعه من عمل الحداده مزرعة الخلايق', amount: 5000, category: 'مزرعة' },
+            { id: 58, date: '2025-02-17', description: 'تحويل سداد نقل برسيم للمزرعه', amount: 5959, category: 'مزرعة' },
+            { id: 59, date: '2025-02-18', description: 'فواتير ابوبكر الدحوه', amount: 1758, category: 'مزرعة' },
+            { id: 60, date: '2025-02-21', description: 'تحويل الى مصنع حمد ( شراء مواسير وتخريم مواسير )', amount: 34850, category: 'مزرعة' },
+            { id: 61, date: '2025-02-22', description: 'تحويل دفعه من حساب البير', amount: 10000, category: 'مزرعة' },
+            { id: 62, date: '2025-02-22', description: 'تحويل باقى حساب البير', amount: 15100, category: 'مزرعة' },
+            { id: 63, date: '2025-02-26', description: 'تحويل حساب الشبول والقلابات والرمل', amount: 14450, category: 'مزرعة' },
+            { id: 64, date: '2025-02-27', description: 'تحويل تسويه فواتير مؤسسة وريف الارض', amount: 6210, category: 'مزرعة' },
+            { id: 65, date: '2025-02-27', description: 'دفعه ثانية من حساب الحداد المزرعه', amount: 4000, category: 'مزرعة' },
+            { id: 66, date: '2025-02-27', description: 'شراء كابل كهرباء للمزرعه الجديده', amount: 14145, category: 'مزرعة' },
+            { id: 67, date: '2025-03-01', description: 'تحويل الى عبدالهادى', amount: 12200, category: 'عمال' },
+            { id: 68, date: '2025-02-17', description: 'تحويل دفعه من تركيب المحور الزراعى', amount: 5000, category: 'مزرعة' },
+            { id: 69, date: '2025-02-18', description: 'تحويل الى ورشة ذيب حسن هيف', amount: 2500, category: 'صيانة' },
+            { id: 70, date: '2025-02-21', description: 'فواتير الابل', amount: 3078, category: 'ابل' },
+            { id: 71, date: '2025-02-19', description: 'فواتير العنادية ( الغنم )', amount: 16810, category: 'غنم' },
+            { id: 72, date: '2025-02-04', description: 'فواتير محمد حسين ( العناديه )', amount: 1155, category: 'مزرعة' },
+            { id: 73, date: '2025-02-23', description: 'فواتير الابل', amount: 946, category: 'ابل' },
+            { id: 74, date: '2025-02-11', description: 'فواتير المزرعه الجديده والدحوه', amount: 2444, category: 'مزرعة' },
+            { id: 75, date: '2025-03-03', description: 'تحويل الدفعه الاخيرة من عمل الرشاش المحورى', amount: 7150, category: 'مزرعة' },
+            { id: 76, date: '2025-03-03', description: 'مصاريف بدون فواتير', amount: 14400, category: 'مزرعة' },
+            { id: 77, date: '2025-02-22', description: 'مصاريف بدون فواتير', amount: 27490, category: 'مزرعة' },
+            { id: 78, date: '2025-03-04', description: 'مصاريف بدون فواتير', amount: 52149, category: 'مزرعة' },
+            { id: 79, date: '2025-03-04', description: 'تحويل الى عبدالمجيد فارس ( شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 80, date: '2025-03-03', description: 'انابيب 160 مم', amount: 6210, category: 'مزرعة' },
+            { id: 81, date: '2025-03-05', description: 'شراء رودس للغنم', amount: 4896, category: 'أعلاف' },
+            { id: 82, date: '2025-03-05', description: 'شراء علف نعام', amount: 900, category: 'أعلاف' },
+            { id: 83, date: '2025-02-20', description: 'فواتير المزرعه الجديدة', amount: 21150, category: 'مزرعة' },
+            { id: 84, date: '2024-09-03', description: 'فاتورة الدحوه', amount: 230, category: 'مزرعة' },
+            { id: 85, date: '2025-03-02', description: 'مصاريف بدون فواتير', amount: 4720, category: 'مزرعة' },
+            { id: 86, date: '2025-03-04', description: 'تحويل الى ورشة ذيب حسن هيف', amount: 9000, category: 'صيانة' },
+            { id: 87, date: '2025-03-04', description: 'قيمة شعير للغنم العناديه', amount: 6250, category: 'أعلاف' },
+            { id: 88, date: '2025-03-04', description: 'مصاريف بدون فواتير', amount: 52149, category: 'مزرعة' },
+            { id: 89, date: '2025-02-26', description: 'فواتير ابوموسى', amount: 1579, category: 'مزرعة' },
+            { id: 90, date: '2025-02-27', description: 'فواتير الابل', amount: 3854, category: 'ابل' },
+            { id: 91, date: '2025-02-08', description: 'فواتير', amount: 3113, category: 'مزرعة' },
+            { id: 92, date: '2025-03-08', description: 'شراء زيوت مكينة 37 و 40', amount: 3130, category: 'صيانة' },
+            { id: 93, date: '2025-03-12', description: 'تحويل الى عبدالرحمن ضويان ( شراء داب لمزرعه الخلايق 80 كيس )', amount: 12400, category: 'مزرعة' },
+            { id: 94, date: '2025-03-12', description: 'مصاريف بدون فواتير', amount: 19680, category: 'مزرعة' },
+            { id: 95, date: '2025-03-07', description: 'فواتير راجو', amount: 976, category: 'مزرعة' },
+            { id: 96, date: '2025-03-06', description: 'فواتير الابل والعنادية', amount: 2919, category: 'ابل' },
+            { id: 97, date: '2025-03-22', description: 'شراء فلاتر تحلية لمزرعه الخلايق', amount: 11011.3, category: 'مزرعة' },
+            { id: 98, date: '2025-03-23', description: 'دفعه من عمل الحدادة مزرعة الخلايق', amount: 4000, category: 'مزرعة' },
+            { id: 99, date: '2025-03-21', description: 'بذر بوليبنك لمزرعة الخلايق', amount: 4760, category: 'مزرعة' },
+            { id: 100, date: '2025-03-18', description: 'شعير للغنم مزرعة العنادية', amount: 6250, category: 'أعلاف' },
+            { id: 101, date: '2025-03-24', description: 'تحويل الى مسفر هادى ( اغراض للخيل )', amount: 328, category: 'مزرعة' },
+            { id: 102, date: '2025-03-25', description: 'تحويل الى عبدالرحمن ضويان', amount: 2520, category: 'مزرعة' },
+            { id: 103, date: '2025-03-11', description: 'فواتير ابوبكر', amount: 1543, category: 'مزرعة' },
+            { id: 104, date: '2025-03-17', description: 'فواتير ابوموسى', amount: 1666, category: 'مزرعة' },
+            { id: 105, date: '2025-03-17', description: 'فواتير راجو', amount: 718, category: 'مزرعة' },
+            { id: 106, date: '2025-03-16', description: 'فواتير ابوبكر الابل', amount: 2127, category: 'ابل' },
+            { id: 107, date: '2025-02-09', description: 'فواتير احمد', amount: 807, category: 'مزرعة' },
+            { id: 108, date: '2025-03-16', description: 'فواتير الابل', amount: 3387, category: 'ابل' },
+            { id: 109, date: '2025-03-27', description: 'رواتب عمال الابل والطباخ', amount: 7100, category: 'عمال' },
+            { id: 110, date: '2025-03-28', description: 'مشوار دينا لتحميل الخيول', amount: 600, category: 'مزرعة' },
+            { id: 111, date: '2025-04-02', description: 'اغراض للخيول', amount: 616, category: 'مزرعة' },
+            { id: 112, date: '2025-04-02', description: 'اغراض للخيول', amount: 379, category: 'مزرعة' },
+            { id: 113, date: '2025-03-08', description: 'كفرات جيب الشاص', amount: 1200, category: 'صيانة' },
+            { id: 114, date: '2025-03-10', description: 'فاتورة محمد حسين ( زيوت )', amount: 246, category: 'صيانة' },
+            { id: 115, date: '2025-04-03', description: 'شراء بلك بيت الجله', amount: 4180, category: 'مزرعة' },
+            { id: 116, date: '2025-04-05', description: 'قيمة شراء حديد ( بيت الجلة القديم )', amount: 4838, category: 'مزرعة' },
+            { id: 117, date: '2025-04-08', description: 'تحويل الى عبدالرحمن ضويان ( يوريا وسماد للمزرعه )', amount: 5125, category: 'مزرعة' },
+            { id: 118, date: '2025-04-08', description: 'تحويل الى ورشة ذيب حسن هيف (تصليح طرمبة ومواصير البير العنادية )', amount: 14000, category: 'صيانة' },
+            { id: 119, date: '2025-04-10', description: 'تحويل الى عبدالمجيد فارس ( شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 120, date: '2025-04-13', description: 'تحويل الى مؤسسة مبارك عيد وحى ( زيوت مكينه وقير فلاتر )', amount: 4010, category: 'صيانة' },
+            { id: 121, date: '2025-04-16', description: 'تحويل الى عبدالله ابراهيم جماز', amount: 3250, category: 'مزرعة' },
+            { id: 122, date: '2025-03-15', description: 'دفعه من عمل الحدادة للمزرعه', amount: 0, category: 'مزرعة' },
+            { id: 123, date: '2025-04-13', description: 'دفعه من عمل الحدادة مزرعة الخلايق', amount: 4000, category: 'مزرعة' },
+            { id: 124, date: '2025-04-16', description: 'قيمة تحميل برسيم', amount: 3357, category: 'أعلاف' },
+            { id: 125, date: '2025-04-23', description: 'قيمة 30 رد رمل لمزرعه الخلايق *450', amount: 13500, category: 'مزرعة' },
+            { id: 126, date: '2025-04-26', description: 'دفعه من عمل الحدادة مزرعة الخلايق', amount: 5000, category: 'مزرعة' },
+            { id: 127, date: '2025-04-26', description: 'مواسير وتخريم المواسير مزرعه العنادي', amount: 40000, category: 'مزرعة' },
+            { id: 128, date: '2025-04-26', description: 'شراء حديد لمواسير مزرعه العنادية', amount: 22900, category: 'مزرعة' },
+            { id: 129, date: '2025-03-30', description: 'فواتير المزرعه الجديدة', amount: 8045, category: 'مزرعة' },
+            { id: 130, date: '2025-04-10', description: 'مصاريف بدون فواتير', amount: 33801, category: 'مزرعة' },
+            { id: 131, date: '2025-03-29', description: 'فواتير الخيل', amount: 332, category: 'مزرعة' },
+            { id: 132, date: '2025-03-26', description: 'فواتير الابل', amount: 1414, category: 'ابل' },
+            { id: 133, date: '2025-04-02', description: 'فواتير ابوبكر', amount: 2519, category: 'مزرعة' },
+            { id: 134, date: '2025-04-27', description: 'تحويل الى عبدالهادى محمد شجاع خضير', amount: 6150, category: 'عمال' },
+            { id: 135, date: '2025-04-28', description: '5 رد ود رمل للمزرعه الخلايق', amount: 2250, category: 'مزرعة' },
+            { id: 136, date: '2025-04-24', description: 'فواتير ابوبكر', amount: 1899, category: 'مزرعة' },
+            { id: 137, date: '', description: 'اسطبل الخيل', amount: 13700, category: 'مزرعة' },
+            { id: 138, date: '2025-04-25', description: 'فواتير', amount: 1193, category: 'مزرعة' },
+            { id: 139, date: '2025-04-16', description: 'فواتير', amount: 902, category: 'مزرعة' },
+            { id: 140, date: '2025-04-03', description: 'فواتير اسطبل الخيل', amount: 6040, category: 'مزرعة' },
+            { id: 141, date: '2025-05-03', description: 'تحويل الى عبدالمجيد فارس ( شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 142, date: '2025-03-31', description: 'فواتير الابل والعنادية', amount: 3565, category: 'ابل' },
+            { id: 143, date: '2025-04-10', description: 'فواتير الخيل والعنادية والدحوه', amount: 21785, category: 'مزرعة' },
+            { id: 144, date: '2025-03-31', description: 'فواتير بيت الجله+الابل+ راجو', amount: 9306, category: 'مزرعة' },
+            { id: 145, date: '2025-03-08', description: 'شراء زيوت ماكينه 37-40', amount: 3130, category: 'صيانة' },
+            { id: 146, date: '2025-04-27', description: 'دفعه من شغل البير العنادية', amount: 20000, category: 'مزرعة' },
+            { id: 147, date: '2025-04-15', description: 'مصاريف بدون فواتير', amount: 15170, category: 'مزرعة' },
+            { id: 148, date: '2025-04-19', description: 'فك وتركيب رشاش محورى مزرعه العنادية', amount: 16300, category: 'مزرعة' },
+            { id: 149, date: '2025-04-23', description: 'ردوس وبرسيم للغنم والابل', amount: 16875, category: 'أعلاف' },
+            { id: 150, date: '2025-03-20', description: 'مصاريف بدون فواتير', amount: 38824, category: 'مزرعة' },
+            { id: 151, date: '2025-04-19', description: 'فواتير العنادية', amount: 1990, category: 'مزرعة' },
+            { id: 152, date: '2025-04-27', description: 'مصاريف بدون فواتير', amount: 39908, category: 'مزرعة' },
+            { id: 153, date: '', description: 'فواتير البير العنادية', amount: 103200, category: 'مزرعة' },
+            { id: 154, date: '2025-04-20', description: 'فواتير مؤسسة عاج الزراعية ( العنادية )', amount: 1088, category: 'مزرعة' },
+            { id: 155, date: '2025-04-17', description: 'فواتير الابل والخلايق', amount: 2581, category: 'ابل' },
+            { id: 156, date: '2025-04-19', description: 'فواتير الخلايق والعناديه', amount: 450, category: 'مزرعة' },
+            { id: 157, date: '2025-04-26', description: 'مصارف شاص المزرعة ( ابوسعيد )', amount: 4820, category: 'صيانة' },
+            { id: 158, date: '2025-05-08', description: 'شراء ليات مزرعه الخلايق', amount: 4167, category: 'مزرعة' },
+            { id: 159, date: '2025-05-08', description: 'شراء بلك بيت الجله', amount: 16200, category: 'مزرعة' },
+            { id: 160, date: '', description: 'مصنعية عمل خزان وبيارة', amount: 12000, category: 'مزرعة' },
+            { id: 161, date: '2025-05-07', description: 'اصلاح طرمبة الحراثة ورديتر', amount: 3000, category: 'صيانة' },
+            { id: 162, date: '', description: 'فواتير ابوبكر', amount: 916, category: 'مزرعة' },
+            { id: 163, date: '', description: 'فواتير ابوبكر والخيل', amount: 1517, category: 'مزرعة' },
+            { id: 164, date: '2025-05-13', description: 'دفعه من شراء اشجار كرفس لاسطبل الخيل مزرعه الخلايق', amount: 7500, category: 'مزرعة' },
+            { id: 165, date: '', description: 'اجور تركيب + عماله + اسطبل الخيل مزرعه الخلايق', amount: 10600, category: 'عمال' },
+            { id: 166, date: '2025-04-25', description: 'فواتير سعيد ( بدر )', amount: 19000, category: 'مزرعة' },
+            { id: 167, date: '2025-04-20', description: 'شراء علف نعام العناديه', amount: 900, category: 'أعلاف' },
+            { id: 168, date: '2025-04-24', description: 'فاتورة العناديه', amount: 535, category: 'مزرعة' },
+            { id: 169, date: '2025-08-05', description: 'فواتير الخلايق', amount: 3566, category: 'مزرعة' },
+            { id: 170, date: '2025-05-13', description: 'فواتير الابل والخلايق', amount: 2061, category: 'ابل' },
+            { id: 171, date: '2025-04-16', description: 'فواتير بيت الجله ( سعيدالباكستانى )', amount: 5562, category: 'مزرعة' },
+            { id: 172, date: '', description: 'فواتير سعيد الباكستانى', amount: 4966, category: 'مزرعة' },
+            { id: 173, date: '2025-04-30', description: 'فواتير احمد', amount: 1160, category: 'مزرعة' },
+            { id: 174, date: '2025-01-05', description: 'فواتير راجو', amount: 4256, category: 'مزرعة' },
+            { id: 175, date: '2025-04-05', description: 'فاتورة عاج الزراعيه', amount: 3300, category: 'مزرعة' },
+            { id: 176, date: '2025-11-18', description: 'فواتير ابوبكر', amount: 411, category: 'مزرعة' },
+            { id: 177, date: '2025-05-25', description: 'شراء 20 كيس داب', amount: 3200, category: 'مزرعة' },
+            { id: 178, date: '2025-05-14', description: 'حبل', amount: 210, category: 'مزرعة' },
+            { id: 179, date: '2025-05-14', description: 'اغراض للخيل', amount: 355, category: 'مزرعة' },
+            { id: 180, date: '2025-05-17', description: '20 كيس داب للعنادية', amount: 3200, category: 'مزرعة' },
+            { id: 181, date: '2025-05-29', description: 'فواتير العناديه والخلايق والابل', amount: 7928, category: 'ابل' },
+            { id: 182, date: '2025-05-24', description: 'فواتير راجو', amount: 1144, category: 'مزرعة' },
+            { id: 183, date: '2025-05-24', description: 'فواتير ابو بكر', amount: 937, category: 'مزرعة' },
+            { id: 184, date: '2025-05-24', description: '2 كفر صينى', amount: 1650, category: 'صيانة' },
+            { id: 185, date: '2025-05-19', description: 'فواتير', amount: 580, category: 'مزرعة' },
+            { id: 186, date: '2025-05-24', description: 'فواتير سعيد الباكستانى', amount: 6284, category: 'مزرعة' },
+            { id: 187, date: '2025-05-18', description: 'فواتير اعلاف', amount: 2500, category: 'أعلاف' },
+            { id: 188, date: '2025-05-29', description: 'تحويل الى مؤسسة ربوع الشارقه مظلة بيت الجلة', amount: 21390, category: 'مزرعة' },
+            { id: 189, date: '2025-05-29', description: 'رواب عمال الابل', amount: 7100, category: 'عمال' },
+            { id: 190, date: '2025-05-29', description: 'دفعه من عمل الحدادة بيت الجلة', amount: 8000, category: 'مزرعة' },
+            { id: 191, date: '2025-05-31', description: 'قيمة بناء بيت الجلة', amount: 12300, category: 'مزرعة' },
+            { id: 192, date: '2025-03-06', description: 'دفعه من تركيب مضخة ضباب للخلايق', amount: 6000, category: 'مزرعة' },
+            { id: 193, date: '2025-03-06', description: 'برميل زيت وفلاتر لمكاين المزرعة', amount: 3610, category: 'صيانة' },
+            { id: 194, date: '2025-05-24', description: 'تحويل الى عبدالمجيد فارس ( شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 195, date: '2025-05-24', description: 'صيدلية ركن النوادر البيطرية', amount: 10485, category: 'ابل' },
+            { id: 196, date: '2025-05-24', description: 'شراء كفر واستك للحراثة', amount: 1550, category: 'صيانة' },
+            { id: 197, date: '2025-05-31', description: 'الغاء تأشيرة', amount: 1000, category: 'عمال' },
+            { id: 198, date: '2025-05-31', description: 'تجديد اقامه عبدالله', amount: 4700, category: 'عمال' },
+            { id: 199, date: '2025-05-31', description: 'مكنسة كهربائية للخلايق', amount: 775, category: 'مزرعة' },
+            { id: 200, date: '2025-05-22', description: 'قطع غيار سيارة احمد العنادية', amount: 350, category: 'صيانة' },
+            { id: 201, date: '2025-05-24', description: 'كفر حراثة العنادية', amount: 1300, category: 'صيانة' },
+            { id: 202, date: '', description: 'سعيد الباكستانى ( العنادية نظافه + بيت الجلة+ شيول دفان )', amount: 6600, category: 'عمال' },
+            { id: 203, date: '2025-05-25', description: '20 كيس داب للعنادية', amount: 3200, category: 'مزرعة' },
+            { id: 204, date: '2025-11-06', description: 'تحويل الى بدر هادى ( شراء حذوة خيل )', amount: 1700, category: 'مزرعة' },
+            { id: 205, date: '2025-06-13', description: 'قيمة فلتر تحلية وبرادة وباقى الحساب', amount: 4500, category: 'مزرعة' },
+            { id: 206, date: '2025-12-06', description: 'داب مزرعة العنادية', amount: 4100, category: 'مزرعة' },
+            { id: 207, date: '2025-01-06', description: 'مصاريف بدون فواتير', amount: 43162, category: 'مزرعة' },
+            { id: 208, date: '2025-01-06', description: 'مصاريف بدون فواتير', amount: 15160, category: 'مزرعة' },
+            { id: 209, date: '2025-06-15', description: 'قيمة عمل بلدوزر هقم لمزرعة الخلايق', amount: 12860, category: 'مزرعة' },
+            { id: 210, date: '2025-06-15', description: 'تحويل الى عبدالمجيد فارس ( شعير للغنم العنادية )', amount: 6250, category: 'أعلاف' },
+            { id: 211, date: '2025-06-14', description: 'دفعه من عمل الحدادة بيت الجلة', amount: 6000, category: 'مزرعة' },
+            { id: 212, date: '2025-06-14', description: 'مضخة ضباب ايطالى', amount: 10500, category: 'مزرعة' },
+            { id: 213, date: '2025-06-16', description: 'تسويه فواتير شركة عبدالله ابراهيم جماز', amount: 9564.1, category: 'مزرعة' },
+            { id: 214, date: '2025-04-06', description: 'فاتورة مؤسسة عاج الزراعية', amount: 1463, category: 'مزرعة' },
+            { id: 215, date: '2025-05-31', description: 'فواتير الابل ومزرعه الخلايق', amount: 5260, category: 'ابل' },
+            { id: 216, date: '2025-09-06', description: 'فواتير الابل ( ابوبكر )', amount: 2227, category: 'ابل' },
+            { id: 217, date: '2025-06-06', description: 'فواتير بيت الجله + المزرعه الجديده ( الخلايق )', amount: 17100, category: 'مزرعة' },
+            { id: 218, date: '2025-01-06', description: 'فواتير راجو', amount: 575, category: 'مزرعة' },
+            { id: 219, date: '2025-06-19', description: 'فواتير المزرعه', amount: 1692, category: 'مزرعة' },
+            { id: 220, date: '2025-06-26', description: 'تحويل الى ربيع محمد عيظة ( الدفعه الاخيرة من عمل البلدوزر )', amount: 5000, category: 'مزرعة' },
+            { id: 221, date: '2025-06-27', description: 'سداد مستحقات حساب الحداد بيت الجلة', amount: 8850, category: 'مزرعة' },
+            { id: 222, date: '2025-06-16', description: 'فاتورة الخيل', amount: 329, category: 'مزرعة' },
+            { id: 223, date: '2025-06-15', description: 'فاتورة الخيل', amount: 70, category: 'مزرعة' },
+            { id: 224, date: '2025-06-19', description: 'تحويل الى عبدالهادى محمد شجاع ( مصاريف )', amount: 5000, category: 'عمال' },
+            { id: 225, date: '', description: 'سداد فاتورة عداد كهرباء', amount: 1832, category: 'مزرعة' },
+            { id: 226, date: '2025-06-20', description: 'مصاريف بدون فواتير', amount: 54952, category: 'مزرعة' },
+            { id: 227, date: '2025-06-20', description: 'مصاريف بدون فواتير', amount: 43060, category: 'مزرعة' },
+            { id: 228, date: '2025-06-26', description: 'فواتير سعيد الباكستانى', amount: 4643, category: 'مزرعة' },
+            { id: 229, date: '', description: 'لياسة بيت الجله + صبة ارضية بيت الجله', amount: 14280, category: 'مزرعة' },
+            { id: 230, date: '2025-06-26', description: 'فواتير ابوبكر الابل + الخيل', amount: 2574, category: 'ابل' },
+            { id: 231, date: '2025-06-30', description: 'فواتير سعيد الباكستانى', amount: 5567, category: 'مزرعة' },
+            { id: 232, date: '2025-06-28', description: 'فواتير ابوبكر الابل', amount: 1190, category: 'ابل' },
+            { id: 233, date: '2025-04-07', description: 'بيت الجله', amount: 20200, category: 'مزرعة' },
+            { id: 234, date: '2025-09-06', description: 'فواتير احمد العنادية', amount: 586, category: 'مزرعة' },
+            { id: 235, date: '2025-06-28', description: 'فواتير العناديه والابل', amount: 10661, category: 'ابل' },
+            { id: 236, date: '2025-06-25', description: 'فواتير راجو', amount: 1565, category: 'مزرعة' },
+            { id: 237, date: '2025-06-24', description: 'تحميل برسيم العناديه', amount: 5662, category: 'أعلاف' },
+            { id: 238, date: '2025-07-07', description: 'شراء علف شعير للغنم', amount: 5800, category: 'أعلاف' },
+            { id: 239, date: '2025-08-07', description: 'تحويل الى شركة عبدالله ابراهيم', amount: 6077, category: 'مزرعة' },
+            { id: 240, date: '2025-03-07', description: 'تأشيرة خروج وعودة عامل المزرعه', amount: 600, category: 'عمال' },
+            { id: 241, date: '2025-03-07', description: 'راتب + تذكره طيران للعامل احمد عبدالقادر محمود', amount: 3600, category: 'عمال' },
+            { id: 242, date: '2025-06-07', description: 'اصلاح الحصادة مزرعه العنادية', amount: 3700, category: 'صيانة' },
+            { id: 243, date: '2025-03-07', description: 'تجديد اقامه احمد عبدالقادر محمود', amount: 600, category: 'عمال' },
+            { id: 244, date: '2025-06-28', description: 'مصاريف بدون فواتير', amount: 27960, category: 'مزرعة' },
+            { id: 245, date: '2025-06-26', description: 'فواتير متنوعه', amount: 7200, category: 'مزرعة' },
+            { id: 246, date: '2025-06-25', description: 'سماد داب سابك', amount: 4099, category: 'مزرعة' },
+            { id: 247, date: '2025-06-28', description: 'مصاريف بدون فواتير', amount: 2400, category: 'مزرعة' },
+            { id: 248, date: '2025-07-21', description: 'مشتريات يوريا مزرعه العنادية', amount: 3360, category: 'مزرعة' },
+            { id: 249, date: '', description: 'سعيد الباكستانى', amount: 9900, category: 'عمال' },
+            { id: 250, date: '2025-07-15', description: 'مواسير العنادية', amount: 5700, category: 'مزرعة' },
+            { id: 251, date: '2025-07-17', description: 'كيبل العنادية', amount: 920, category: 'مزرعة' },
+            { id: 252, date: '2025-12-07', description: 'فواتير سعيد الباكستانى', amount: 1446, category: 'مزرعة' },
+            { id: 253, date: '2025-07-14', description: 'فواتير ابوبكر الابل', amount: 551, category: 'ابل' },
+            { id: 254, date: '2025-07-14', description: 'فواتير اصلاح الدينه', amount: 1793, category: 'صيانة' },
+            { id: 255, date: '2025-07-14', description: 'مصاريف بدون فواتير', amount: 37500, category: 'مزرعة' },
+            { id: 256, date: '2025-07-13', description: 'فواتير الابل', amount: 8799, category: 'ابل' },
+            { id: 257, date: '2025-05-07', description: 'فواتير سعيد الباكستانى', amount: 7755, category: 'مزرعة' },
+            { id: 258, date: '2025-07-07', description: 'فواتير ابوبكر', amount: 500, category: 'مزرعة' },
+            { id: 259, date: '2025-05-07', description: 'فواتير راجو', amount: 710, category: 'مزرعة' },
+            { id: 260, date: '2025-08-07', description: 'فواتير راجو', amount: 1363, category: 'مزرعة' },
+            { id: 261, date: '2025-06-25', description: 'سماد داب سابك', amount: 4100, category: 'مزرعة' },
+            { id: 262, date: '2025-04-08', description: 'قيمة شراء 20 كيس يوريا', amount: 3460, category: 'مزرعة' },
+            { id: 263, date: '2025-05-08', description: 'اصلاح المروحة والمواسير مزرعة العنادية', amount: 9265, category: 'صيانة' },
+            { id: 264, date: '2025-04-08', description: 'قيمة اصلاح دفاعة النخل', amount: 1000, category: 'صيانة' },
+            { id: 265, date: '2025-06-08', description: 'قيمة 10 اكياس داب لمزرعة الخلايق', amount: 1730, category: 'مزرعة' },
+            { id: 266, date: '2025-07-08', description: 'توبى جديد بالعمود مع تكيات للبير', amount: 13300, category: 'مزرعة' },
+            { id: 267, date: '2025-05-17', description: 'مصاريف بدون فواتير', amount: 24367, category: 'مزرعة' },
+            { id: 268, date: '2025-05-22', description: 'شفاط 3 بوصة نحاس الخلايق', amount: 250, category: 'مزرعة' },
+            { id: 269, date: '2025-02-08', description: 'شراء شعير للغنم العنادية', amount: 5700, category: 'أعلاف' },
+            { id: 270, date: '2025-11-08', description: 'حذوة الخيل', amount: 1400, category: 'مزرعة' },
+            { id: 271, date: '2025-11-08', description: 'سلفة عبدالله محمد الخيرى', amount: 4000, category: 'عمال' },
+            { id: 272, date: '2025-11-08', description: 'تذكرة العامل عبدالله السودانى', amount: 1709, category: 'عمال' },
+            { id: 273, date: '2025-07-30', description: 'فواتير راجو', amount: 4670, category: 'مزرعة' },
+            { id: 274, date: '2025-07-31', description: 'فواتير الخيل والابل والعنادية والخلايق', amount: 13814, category: 'ابل' },
+            { id: 275, date: '2025-07-21', description: 'سماد داب سابك', amount: 3360, category: 'مزرعة' },
+            { id: 276, date: '2025-07-25', description: 'فواتير', amount: 340, category: 'مزرعة' },
+            { id: 277, date: '2025-07-19', description: 'فواتير راجو', amount: 752, category: 'مزرعة' },
+            { id: 278, date: '2025-07-27', description: 'فواتير ابوبكر', amount: 1629, category: 'مزرعة' },
+            { id: 279, date: '2025-08-14', description: 'فواتير الابل', amount: 11811, category: 'ابل' },
+            { id: 280, date: '2025-07-24', description: 'فواتير صيدلية ركن النوادر', amount: 3905, category: 'ابل' },
+            { id: 281, date: '2025-08-14', description: 'فواتير ابوبكر', amount: 294, category: 'مزرعة' },
+            { id: 282, date: '2025-08-16', description: 'زيوت للمزرعة', amount: 3875, category: 'صيانة' },
+            { id: 283, date: '2025-08-15', description: 'اصلاح غطاس المزرعة الخلايق', amount: 5250, category: 'صيانة' },
+            { id: 284, date: '2025-08-17', description: 'مصاريف بدون فواتير', amount: 56599, category: 'مزرعة' },
+            { id: 285, date: '2025-08-17', description: 'مصاريف بدون فواتير', amount: 10692, category: 'مزرعة' },
+            { id: 286, date: '2025-08-27', description: 'تجديد اقامة عامل الابل ( محمد بابكرموسى )', amount: 600, category: 'عمال' },
+            { id: 287, date: '2025-08-25', description: 'سماد بقرى 240*16 ريال', amount: 3840, category: 'مزرعة' },
+            { id: 288, date: '2025-08-25', description: 'شعير للغنم مزرعة العنادية', amount: 6000, category: 'أعلاف' },
+            { id: 289, date: '2025-08-24', description: 'اصلاح اللبانه مزرعة العنادية', amount: 1200, category: 'صيانة' },
+            { id: 290, date: '2025-08-20', description: 'تغيير ترس لبانه ( العنادية )', amount: 650, category: 'صيانة' },
+            { id: 291, date: '2025-08-20', description: 'فواتير الابل والعناديه والمزرعة', amount: 14201, category: 'ابل' },
+            { id: 292, date: '2025-08-13', description: 'فواتير راجو', amount: 1025, category: 'مزرعة' },
+            { id: 293, date: '2025-08-18', description: 'فواتير ابوبكر الابل', amount: 810, category: 'ابل' },
+            { id: 294, date: '2025-08-24', description: 'مصاريف بدون فواتير', amount: 2600, category: 'مزرعة' },
+            { id: 295, date: '2025-08-23', description: 'فواتير راجو', amount: 1141, category: 'مزرعة' },
+            { id: 296, date: '2025-03-02', description: 'فواتير الابل', amount: 706, category: 'ابل' },
+            { id: 297, date: '2025-08-28', description: 'فواتير الابل والمزرعة', amount: 1874, category: 'ابل' },
+            { id: 298, date: '2025-08-30', description: 'مصاريف بدون فواتير', amount: 21477, category: 'مزرعة' },
+            { id: 299, date: '2025-06-09', description: 'تحويل الى سعيد هادى شجاع', amount: 1349, category: 'مزرعة' },
+            { id: 300, date: '2025-07-21', description: 'فواتير سعيد الباكستانى', amount: 2086, category: 'مزرعة' },
+            { id: 301, date: '2025-03-09', description: 'فواتير المزرعة والعنادية والابل', amount: 7764, category: 'ابل' },
+            { id: 302, date: '2025-03-09', description: 'اصلاح سيارة راجو', amount: 1623, category: 'صيانة' },
+            { id: 303, date: '2025-02-09', description: 'فواتير راجو', amount: 520, category: 'مزرعة' },
+            { id: 304, date: '2025-05-09', description: 'فواتير ابوبكر الابل', amount: 1337, category: 'ابل' },
+            { id: 305, date: '2025-05-09', description: 'مصاريف بدون فواتير', amount: 35120, category: 'مزرعة' },
+            { id: 306, date: '2025-09-24', description: 'فاتورة شركة فيكيلز للمقاولات', amount: 1925, category: 'مزرعة' },
+            { id: 307, date: '2025-09-24', description: 'فاتورة شركة فيكيلز للمقاولات', amount: 22315.5, category: 'مزرعة' },
+            { id: 308, date: '2025-09-23', description: 'تحويل الى ذيب حسن هيف', amount: 650, category: 'صيانة' },
+            { id: 309, date: '2025-09-22', description: 'تحويل الى ابوبكر عباس', amount: 1600, category: 'مزرعة' },
+            { id: 310, date: '2025-05-10', description: '10 اكياس علف نعام', amount: 850, category: 'أعلاف' },
+            { id: 311, date: '2025-05-10', description: 'قطع غيار توضيب ماكينة الدنه الخلايق', amount: 2000, category: 'صيانة' },
+            { id: 312, date: '2025-05-10', description: 'سداد عبر نقاط البيع', amount: 600, category: 'مزرعة' },
+            { id: 313, date: '2025-05-10', description: 'سداد عبر نقاط البيع', amount: 1200, category: 'مزرعة' },
+            { id: 314, date: '2025-09-09', description: 'فواتير الابل والخلايق', amount: 11207, category: 'ابل' },
+            { id: 315, date: '2025-09-23', description: 'فواتير ابوبكر', amount: 754, category: 'مزرعة' },
+            { id: 316, date: '2025-05-09', description: 'فواتير راجو', amount: 740, category: 'مزرعة' },
+            { id: 317, date: '2025-09-21', description: 'فواتير راجو', amount: 1463, category: 'مزرعة' },
+            { id: 318, date: '2025-09-15', description: 'فواتير الابل', amount: 1520, category: 'ابل' },
+            { id: 319, date: '2025-05-10', description: 'مصاريف بدون فواتير', amount: 76679, category: 'مزرعة' },
+            { id: 320, date: '2025-12-10', description: 'قيمة عمل الكنب بيت الوالد', amount: 900, category: 'مزرعة' },
+            { id: 321, date: '2025-12-10', description: 'مصاريف بيت الوالد ( المونسية )', amount: 5000, category: 'مزرعة' },
+            { id: 322, date: '2025-11-10', description: 'قيمة براميل زيوت فلاتر', amount: 4500, category: 'صيانة' },
+            { id: 323, date: '2025-07-09', description: 'فاتورة 17263 الابل', amount: 1250, category: 'ابل' },
+            { id: 324, date: '2025-10-14', description: 'تحويل الى عمرو ابراهيم عبدالحميد ( تحذية الخيل )', amount: 1400, category: 'مزرعة' },
+            { id: 325, date: '2025-10-18', description: 'شعير للغنم مزرعة العنادية', amount: 6000, category: 'أعلاف' },
+            { id: 326, date: '', description: 'سعيد الباكستانى', amount: 7450, category: 'عمال' },
+            { id: 327, date: '2025-09-19', description: 'فواتير سعيد الباكستانى', amount: 6772, category: 'مزرعة' },
+            { id: 328, date: '2025-05-10', description: 'فواتير مجمعه بيت العناديه + الخيل الخلايق + بيت الوالد', amount: 7100, category: 'مزرعة' },
+            { id: 330, date: '2025-01-10', description: 'فواتير راجو', amount: 912, category: 'مزرعة' },
+            { id: 331, date: '2025-06-10', description: 'قيمة اصلاح دينه خالد ( الابل )', amount: 2240, category: 'صيانة' },
+            { id: 332, date: '2025-05-10', description: 'فواتير راجو', amount: 1520, category: 'مزرعة' },
+            { id: 333, date: '2025-10-09', description: 'فواتير ابوبكر الابل', amount: 3633, category: 'ابل' },
+            { id: 334, date: '2025-10-17', description: 'مصاريف بدون فواتير', amount: 38165, category: 'مزرعة' }
+        ];
+
+        // إجمالي المصروفات
+        const totalExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+        
+        // تحديث البطاقات الإحصائية
+        document.querySelector('.card.total .value').textContent = totalExpenses.toLocaleString('ar-SA') + ' ريال';
+        document.querySelector('.summary-cards .card:nth-child(2) .value').textContent = Math.round(totalExpenses / 12).toLocaleString('ar-SA') + ' ريال';
+        
+        const maxExpense = Math.max(...expensesData.map(expense => expense.amount));
+        document.querySelector('.summary-cards .card:nth-child(3) .value').textContent = maxExpense.toLocaleString('ar-SA') + ' ريال';
+        
+        document.querySelector('.summary-cards .card:nth-child(4) .value').textContent = expensesData.length + ' معاملة';
+
+        // تصنيف البيانات حسب النوع
+        const categoryTotals = {};
+        expensesData.forEach(expense => {
+            if (expense.amount > 0) {
+                if (!categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] = 0;
+                }
+                categoryTotals[expense.category] += expense.amount;
+            }
+        });
+
+        // تصنيف البيانات حسب الشهر
+        const monthlyTotals = {};
+        expensesData.forEach(expense => {
+            if (expense.date && expense.amount > 0) {
+                const month = expense.date.split('-')[1];
+                if (!monthlyTotals[month]) {
+                    monthlyTotals[month] = 0;
+                }
+                monthlyTotals[month] += expense.amount;
+            }
+        });
+
+        // إنشاء مخطط توزيع المصروفات حسب النوع
+        const categoryChart = new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(categoryTotals),
+                datasets: [{
+                    data: Object.values(categoryTotals),
+                    backgroundColor: [
+                        '#2c7744', '#3a8b5c', '#4ca371', '#5eb986', '#70cf9b',
+                        '#82e5b0', '#94fbc5', '#a6ffda', '#b8ffef', '#caffff'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        rtl: true
+                    }
+                }
+            }
+        });
+
+        // إنشاء مخطط المصروفات الشهرية
+        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        
+        const monthlyData = [];
+        for (let i = 1; i <= 12; i++) {
+            const monthKey = i.toString().padStart(2, '0');
+            monthlyData.push(monthlyTotals[monthKey] || 0);
+        }
+
+        const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'المصروفات',
+                    data: monthlyData,
+                    backgroundColor: '#2c7744',
+                    borderColor: '#1e5631',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('ar-SA') + ' ريال';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // إنشاء مخطط أكبر 10 مصروفات
+        const sortedExpenses = [...expensesData]
+            .filter(expense => expense.amount > 0)
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 10);
+        
+        const topExpensesChart = new Chart(document.getElementById('topExpensesChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedExpenses.map(expense => expense.description.substring(0, 20) + '...'),
+                datasets: [{
+                    label: 'المبلغ',
+                    data: sortedExpenses.map(expense => expense.amount),
+                    backgroundColor: '#3a8b5c',
+                    borderColor: '#2c7744',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('ar-SA') + ' ريال';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // إنشاء مخطط المصروفات بدون فواتير مقابل المصروفات مع فواتير
+        const withInvoice = expensesData.filter(expense => 
+            expense.description.includes('فواتير') || expense.description.includes('فاتورة')
+        ).reduce((sum, expense) => sum + expense.amount, 0);
+        
+        const withoutInvoice = expensesData.filter(expense => 
+            !expense.description.includes('فواتير') && !expense.description.includes('فاتورة')
+        ).reduce((sum, expense) => sum + expense.amount, 0);
+
+        const invoiceChart = new Chart(document.getElementById('invoiceChart'), {
+            type: 'pie',
+            data: {
+                labels: ['مع فواتير', 'بدون فواتير'],
+                datasets: [{
+                    data: [withInvoice, withoutInvoice],
+                    backgroundColor: ['#2c7744', '#d9534f'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        rtl: true
+                    }
+                }
+            }
+        });
+
+        // وظائف التصفية والبحث
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredData = [...expensesData];
+
+        function filterData() {
+            const monthFilter = document.getElementById('monthFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const amountFilter = document.getElementById('amountFilter').value;
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            
+            filteredData = expensesData.filter(expense => {
+                // تصفية حسب الشهر
+                if (monthFilter !== 'all' && expense.date) {
+                    const month = expense.date.split('-')[1];
+                    if (month !== monthFilter) return false;
+                }
+                
+                // تصفية حسب النوع
+                if (categoryFilter !== 'all' && expense.category !== categoryFilter) return false;
+                
+                // تصفية حسب نطاق المبلغ
+                if (amountFilter !== 'all') {
+                    const amount = expense.amount;
+                    switch(amountFilter) {
+                        case '0-1000': if (amount >= 1000) return false; break;
+                        case '1000-5000': if (amount < 1000 || amount >= 5000) return false; break;
+                        case '5000-10000': if (amount < 5000 || amount >= 10000) return false; break;
+                        case '10000-50000': if (amount < 10000 || amount >= 50000) return false; break;
+                        case '50000+': if (amount < 50000) return false; break;
+                    }
+                }
+                
+                // تصفية حسب البحث
+                if (searchTerm && !expense.description.toLowerCase().includes(searchTerm)) return false;
+                
+                return true;
+            });
+            
+            currentPage = 1;
+            renderTable();
+            updatePagination();
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            pageData.forEach(expense => {
+                const row = document.createElement('tr');
+                
+                const idCell = document.createElement('td');
+                idCell.textContent = expense.id;
+                row.appendChild(idCell);
+                
+                const dateCell = document.createElement('td');
+                dateCell.textContent = expense.date || '-';
+                row.appendChild(dateCell);
+                
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = expense.description;
+                row.appendChild(descriptionCell);
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = expense.amount.toLocaleString('ar-SA') + ' ريال';
+                row.appendChild(amountCell);
+                
+                const categoryCell = document.createElement('td');
+                categoryCell.textContent = expense.category;
+                row.appendChild(categoryCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.classList.toggle('active', i === currentPage);
+                button.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                    updatePagination();
+                });
+                pagination.appendChild(button);
+            }
+        }
+
+        // إضافة مستمعي الأحداث للتصفية
+        document.getElementById('monthFilter').addEventListener('change', filterData);
+        document.getElementById('categoryFilter').addEventListener('change', filterData);
+        document.getElementById('amountFilter').addEventListener('change', filterData);
+        document.getElementById('search').addEventListener('input', filterData);
+
+        // التهيئة الأولية
+        renderTable();
+        updatePagination();
+    </script>
+</body>
+</html>

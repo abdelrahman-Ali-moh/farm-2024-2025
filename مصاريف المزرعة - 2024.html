@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحليل مصاريف المزرعة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            border: none;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eaeaea;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .summary-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .summary-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .table th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .filter-section {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .highlight {
+            background-color: #fff9e6;
+        }
+        
+        .badge-category {
+            font-size: 0.7rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        footer {
+            margin-top: 3rem;
+        }
+        
+        /* RTL specific adjustments */
+        .form-select {
+            text-align: right;
+        }
+        
+        .table {
+            text-align: right;
+        }
+        
+        .list-group-item {
+            text-align: right;
+        }
+        
+        .nav-tabs .nav-item {
+            float: right;
+        }
+        
+        .data-summary {
+            border-right: 4px solid var(--secondary);
+            padding-right: 15px;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .category-icon {
+            font-size: 1.5rem;
+            margin-left: 10px;
+        }
+        
+        .filter-active {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .reset-filters {
+            margin-top: 10px;
+        }
+        
+        .amount-high {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .amount-medium {
+            color: var(--warning);
+        }
+        
+        .amount-low {
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-chart-line me-2"></i>لوحة تحليل مصاريف المزرعة</h1>
+                    <p class="lead mb-0">نظرة شاملة على مصاريف المزرعة والإبل للفترة 2023-2024</p>
+                </div>
+                <div class="col-md-4 text-md-start">
+                    <span class="badge bg-light text-dark fs-6">المجموع: <span id="totalAmount">2,573,559.00</span> ر.س</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- بطاقات الملخص -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card summary-card bg-primary text-white">
+                    <div class="card-body">
+                        <i class="fas fa-receipt category-icon"></i>
+                        <div class="summary-label">إجمالي المعاملات</div>
+                        <div class="summary-value" id="totalTransactions">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card bg-success text-white">
+                    <div class="card-body">
+                        <i class="fas fa-calculator category-icon"></i>
+                        <div class="summary-label">متوسط المعاملة</div>
+                        <div class="summary-value" id="averageTransaction">0 ر.س</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card bg-warning text-dark">
+                    <div class="card-body">
+                        <i class="fas fa-arrow-up category-icon"></i>
+                        <div class="summary-label">أعلى معاملة</div>
+                        <div class="summary-value" id="highestTransaction">0 ر.س</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card bg-info text-white">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-alt category-icon"></i>
+                        <div class="summary-label">عدد الأشهر</div>
+                        <div class="summary-value" id="monthsCount">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- عوامل التصفية -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="categoryFilter" class="form-label">التصنيف حسب النوع</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="all">جميع التصنيفات</option>
+                        <option value="camels">مصاريف الإبل</option>
+                        <option value="farm">مصاريف المزرعة</option>
+                        <option value="transfers">التحويلات</option>
+                        <option value="invoices">الفواتير</option>
+                        <option value="without">بدون فواتير</option>
+                        <option value="workers">عمال وأجور</option>
+                        <option value="animals">الحيوانات</option>
+                        <option value="supplies">مستلزمات</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="dateFilter" class="form-label">التصنيف حسب التاريخ</label>
+                    <select class="form-select" id="dateFilter">
+                        <option value="all">جميع التواريخ</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="q1">الربع الأول 2024</option>
+                        <option value="q2">الربع الثاني 2024</option>
+                        <option value="q3">الربع الثالث 2024</option>
+                        <option value="q4">الربع الرابع 2024</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="amountFilter" class="form-label">التصنيف حسب المبلغ</label>
+                    <select class="form-select" id="amountFilter">
+                        <option value="all">جميع المبالغ</option>
+                        <option value="high">عالية (أكثر من 10,000 ر.س)</option>
+                        <option value="medium">متوسطة (1,000 - 10,000 ر.س)</option>
+                        <option value="low">منخفضة (أقل من 1,000 ر.س)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="locationFilter" class="form-label">التصنيف حسب الموقع</label>
+                    <select class="form-select" id="locationFilter">
+                        <option value="all">جميع المواقع</option>
+                        <option value="الدحو">الدحو</option>
+                        <option value="المزرعة الجديدة">المزرعة الجديدة</option>
+                        <option value="العنادية">العنادية</option>
+                        <option value="كسورا">كسورا</option>
+                        <option value="عام">عام</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <button class="btn btn-outline-secondary reset-filters" id="resetFilters">
+                        <i class="fas fa-redo me-1"></i>إعادة تعيين الفلاتر
+                    </button>
+                    <span class="badge bg-info me-2" id="activeFiltersBadge" style="display: none;">فلاتر نشطة</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- المخططات والبيانات -->
+        <div class="row">
+            <!-- العمود الأيسر: المخططات -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="chartTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="category-tab" data-bs-toggle="tab" data-bs-target="#category" type="button" role="tab">حسب التصنيف</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">الاتجاه الشهري</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="top-tab" data-bs-toggle="tab" data-bs-target="#top" type="button" role="tab">أعلى المصاريف</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="chartTabsContent">
+                            <div class="tab-pane fade show active" id="category" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="categoryChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="monthly" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="top" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="topExpensesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- جدول البيانات -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>جميع المعاملات <span id="filteredCount" class="badge bg-secondary"></span></span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" id="exportBtn"><i class="fas fa-download me-1"></i>تصدير البيانات</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-container">
+                            <table class="table table-hover mb-0" id="expensesTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>التاريخ</th>
+                                        <th>البيان</th>
+                                        <th>المبلغ (ر.س)</th>
+                                        <th>التصنيف</th>
+                                        <th>الموقع</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملء البيانات بواسطة JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- العمود الأيمن: ملخص البيانات -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">تصنيفات المصاريف</div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush" id="categorySummary">
+                            <!-- سيتم ملؤها ديناميكياً -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">المواقع الرئيسية</div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush" id="locationSummary">
+                            <!-- سيتم ملؤها ديناميكياً -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">أكبر المعاملات حديثاً</div>
+                    <div class="card-body p-0">
+                        <div class="table-container">
+                            <table class="table table-sm table-hover mb-0" id="topTransactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>التاريخ</th>
+                                        <th>البيان</th>
+                                        <th>المبلغ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملؤها ديناميكياً -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">ملخص البيانات</div>
+                    <div class="card-body">
+                        <div class="data-summary">
+                            <p><i class="fas fa-calendar me-2"></i><strong>فترة البيانات:</strong> <span id="dateRange">نوفمبر 2023 - ديسمبر 2024</span></p>
+                            <p><i class="fas fa-money-bill-wave me-2"></i><strong>إجمالي المصاريف:</strong> <span class="total-amount" id="summaryTotal">2,573,559 ر.س</span></p>
+                            <p><i class="fas fa-chart-pie me-2"></i><strong>أكبر فئة:</strong> <span id="topCategory">التحويلات (580,000 ر.س)</span></p>
+                            <p><i class="fas fa-map-marked-alt me-2"></i><strong>أكثر موقع إنفاق:</strong> <span id="topLocation">الدحو (180,000 ر.س)</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-chart-line me-2"></i>لوحة تحليل مصاريف المزرعة</h5>
+                    <p class="mb-0">لوحة متكاملة لتتبع وتحليل مصاريف المزرعة والإبل</p>
+                </div>
+                <div class="col-md-6 text-md-start">
+                    <p class="mb-0"><i class="fas fa-calendar me-2"></i>فترة البيانات: نوفمبر 2023 - ديسمبر 2024</p>
+                    <p class="mb-0"><i class="fas fa-calculator me-2"></i>إجمالي المصاريف: <span id="footerTotal">2,573,559.00</span> ر.س</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // بيانات حقيقية من ملف الإكسل
+        const expensesData = [
+            { id: 1, date: '01/03/2024', description: 'تحويل الى مؤسسة عاج الزراعية', amount: 3500.0, category: 'transfers', location: 'عام' },
+            { id: 2, date: '01/07/2024', description: 'بيان مصاريف المزرعه والابل ( بدون فواتير )', amount: 23054.0, category: 'without', location: 'المزرعة الجديدة' },
+            { id: 3, date: '01/01/2024', description: 'فواتير الابل ولعنادية', amount: 19922.0, category: 'camels', location: 'العنادية' },
+            { id: 4, date: '20/12/2023', description: 'فواتير راجو الدحوه', amount: 1106.0, category: 'invoices', location: 'الدحو' },
+            { id: 5, date: '27/11/2023', description: 'فواتير كاسورا', amount: 1795.0, category: 'invoices', location: 'كسورا' },
+            { id: 6, date: '12/11/2023', description: 'فواتير', amount: 1264.0, category: 'invoices', location: 'عام' },
+            { id: 7, date: '01/05/2024', description: 'فواتير الابل', amount: 8168.0, category: 'camels', location: 'عام' },
+            { id: 8, date: '11/02/2023', description: 'فواتير العنادية', amount: 1249.0, category: 'farm', location: 'العنادية' },
+            { id: 9, date: '01/05/2024', description: 'فاتورة الابل', amount: 447.0, category: 'camels', location: 'عام' },
+            { id: 10, date: '12/11/2023', description: 'فواتير احمد', amount: 344.0, category: 'invoices', location: 'العنادية' },
+            { id: 11, date: '27/12/2023', description: 'فواتير كاسورا', amount: 1141.0, category: 'invoices', location: 'كسورا' },
+            { id: 12, date: '21/12/2023', description: 'فواتير', amount: 213.0, category: 'invoices', location: 'عام' },
+            { id: 13, date: '13/01/2023', description: 'تحويل الى شركة عالم االمسانده رد ديزل', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 14, date: '01/09/2024', description: 'فواتير ابوبكر', amount: 670.0, category: 'invoices', location: 'عام' },
+            { id: 15, date: '01/03/2024', description: 'فواتير العنادية', amount: 1416.0, category: 'farm', location: 'العنادية' },
+            { id: 16, date: '01/09/2024', description: 'فواتير كاسورا ( المزرعه الجديدة )', amount: 804.0, category: 'invoices', location: 'المزرعة الجديدة' },
+            { id: 17, date: '13/01/2024', description: 'فواتير الابل', amount: 8641.0, category: 'camels', location: 'عام' },
+            { id: 18, date: '14/01/2024', description: 'فواتير ابوبكر ( الابل )', amount: 409.0, category: 'camels', location: 'عام' },
+            { id: 19, date: '01/06/2024', description: 'فواتير راجو الدحوه', amount: 698.0, category: 'invoices', location: 'الدحو' },
+            { id: 20, date: '31/01/2024', description: 'فواتير', amount: 21380.0, category: 'invoices', location: 'عام' },
+            { id: 21, date: '02/01/2024', description: 'تحويل الى شركة عالم االمسانده رد ديزل', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 22, date: '02/01/2024', description: 'تحويل الى ناصر سالم القحطانى ( 42 رد رمل للمزرعة )', amount: 12600.0, category: 'transfers', location: 'عام' },
+            { id: 23, date: '14/01/2024', description: 'نقل برسيم الدحوه', amount: 8545.0, category: 'supplies', location: 'الدحو' },
+            { id: 24, date: '24/01/2024', description: 'فاتورة مؤسسة عبدالرحمن الضويان ( يوريا ناعم ) الدحوه', amount: 10080.0, category: 'supplies', location: 'الدحو' },
+            { id: 25, date: '02/01/2024', description: 'فاتورة أغراض ( الابل )', amount: 940.0, category: 'camels', location: 'عام' },
+            { id: 26, date: '27/01/2024', description: 'فواتير العنادية ( محمد حسين )', amount: 424.0, category: 'farm', location: 'العنادية' },
+            { id: 27, date: '22/01/2024', description: 'فواتير الابل + العنادية +المزرعة الجديدة', amount: 15783.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 28, date: '19/01/2024', description: 'فواتير العنادية', amount: 792.0, category: 'farm', location: 'العنادية' },
+            { id: 29, date: '14/01/2024', description: 'فواتير راجو الدحوه', amount: 1504.0, category: 'invoices', location: 'الدحو' },
+            { id: 30, date: '20/01/2024', description: 'فواتير المزرعه الجديدة', amount: 950.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 31, date: '02/04/2024', description: 'فواتير', amount: 16051.0, category: 'invoices', location: 'عام' },
+            { id: 32, date: '02/11/2024', description: 'فواتير', amount: 19450.0, category: 'invoices', location: 'عام' },
+            { id: 33, date: '02/10/2024', description: 'تحويل الى محمد هجاج عقشان ( 400 شعيروهملان 20كيس )', amount: 29080.0, category: 'transfers', location: 'عام' },
+            { id: 34, date: '02/09/2024', description: 'تحويل الى ناصر سالم القحطانى ( 58 رد رمل للمزرعة )', amount: 17400.0, category: 'transfers', location: 'عام' },
+            { id: 35, date: '02/09/2024', description: 'فواتير عبدالهادى', amount: 9593.0, category: 'invoices', location: 'عام' },
+            { id: 36, date: '01/09/2024', description: 'فواتير ابوبكر', amount: 1133.0, category: 'invoices', location: 'عام' },
+            { id: 37, date: '02/07/2024', description: 'فاتورة مؤسسة عاج الزارعية ( الدحوه )', amount: 2300.0, category: 'farm', location: 'الدحو' },
+            { id: 38, date: '13/02/2024', description: 'فواتير', amount: 7700.0, category: 'invoices', location: 'عام' },
+            { id: 39, date: '02/10/2024', description: 'فواتير الدحوة', amount: 675.0, category: 'invoices', location: 'الدحو' },
+            { id: 40, date: '15/02/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 4980.0, category: 'transfers', location: 'عام' },
+            { id: 41, date: '02/08/1445', description: 'فواتير المزرعة الجديدة ( كاسورا )', amount: 1840.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 42, date: '', description: 'ايجار لوبد ( المزرعة الجديدة )', amount: 1800.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 43, date: '29/01/2024', description: 'بطاريات للمزرعة الجديدة', amount: 740.0, category: 'supplies', location: 'المزرعة الجديدة' },
+            { id: 44, date: '21/07/1445', description: 'فواتير العنادية', amount: 943.0, category: 'farm', location: 'العنادية' },
+            { id: 45, date: '02/05/2024', description: 'قاطع كهربائى ( الابل )', amount: 195.0, category: 'camels', location: 'عام' },
+            { id: 46, date: '20/07/1445', description: 'أدوية بيطرية ( العنادية )', amount: 900.0, category: 'animals', location: 'العنادية' },
+            { id: 47, date: '17/02/2024', description: 'تحويل الى شركة عالم االمسانده رد ديزل', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 48, date: '18/02/2024', description: 'تحويل الى عبدالهادى محمد شجاع ( مشتريات )', amount: 5910.0, category: 'transfers', location: 'عام' },
+            { id: 49, date: '19/02/2024', description: 'مشتريات مكتبة جرير', amount: 5646.0, category: 'supplies', location: 'عام' },
+            { id: 50, date: '25/02/2024', description: 'ايجار رصاصة + جليدر للمزرعة الجديدة', amount: 11000.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 51, date: '25/02/2024', description: 'فواتير', amount: 18443.0, category: 'invoices', location: 'عام' },
+            { id: 52, date: '13/2/2024', description: 'فواتير الدحوة', amount: 654.0, category: 'invoices', location: 'الدحو' },
+            { id: 53, date: '02/12/2024', description: 'فواتير العنادية', amount: 231.0, category: 'farm', location: 'العنادية' },
+            { id: 54, date: '20/02/2024', description: 'فواتير المزرعه الجديدة', amount: 3904.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 55, date: '19/02/2024', description: 'فواتير الابل', amount: 5892.0, category: 'camels', location: 'عام' },
+            { id: 56, date: '25/02/2024', description: 'فواتير ابوبكر', amount: 1422.0, category: 'invoices', location: 'عام' },
+            { id: 57, date: '29/02/2024', description: 'أغراض بقالة', amount: 310.0, category: 'supplies', location: 'عام' },
+            { id: 58, date: '29/02/2024', description: 'أغراض + خضار', amount: 1059.0, category: 'supplies', location: 'عام' },
+            { id: 59, date: '03/03/2024', description: 'تحويل الى شركة عالم االمسانده رد ديزل', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 60, date: '03/03/2024', description: 'مصاريف بدون فواتير', amount: 17000.0, category: 'without', location: 'عام' },
+            { id: 61, date: '03/02/2024', description: 'فاتورة مؤسسة عبدالرحمن الضويان ( يوريا ناعم ) الدحوه', amount: 5600.0, category: 'supplies', location: 'الدحو' },
+            { id: 62, date: '', description: 'شغل عمال في مزرعة العنادية + المزرعه الجديدة', amount: 8700.0, category: 'workers', location: 'العنادية' },
+            { id: 63, date: '23/02/2024', description: 'فواتير العنادية', amount: 678.0, category: 'farm', location: 'العنادية' },
+            { id: 64, date: '29/02/2024', description: 'فواتير الابل', amount: 376.0, category: 'camels', location: 'عام' },
+            { id: 65, date: '27/02/2024', description: 'فواتير العنادية', amount: 1024.0, category: 'farm', location: 'العنادية' },
+            { id: 66, date: '20/02/2024', description: 'فواتير الدحوة', amount: 836.0, category: 'invoices', location: 'الدحو' },
+            { id: 67, date: '24/02/2024', description: 'فواتير الابل + العنادية +المزرعة الجديدة', amount: 9500.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 68, date: '03/11/2024', description: 'فواتير', amount: 16230.0, category: 'invoices', location: 'عام' },
+            { id: 69, date: '03/09/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 2500.0, category: 'transfers', location: 'عام' },
+            { id: 70, date: '13/03/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 5450.0, category: 'transfers', location: 'عام' },
+            { id: 71, date: '03/10/2024', description: 'فواتير العنادية', amount: 6180.0, category: 'farm', location: 'العنادية' },
+            { id: 72, date: '03/09/2024', description: 'فواتير الابل', amount: 392.0, category: 'camels', location: 'عام' },
+            { id: 73, date: '', description: 'توصيل', amount: 500.0, category: 'supplies', location: 'عام' },
+            { id: 74, date: '03/10/2024', description: 'فواتير المزرعه الجديدة', amount: 1430.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 75, date: '18/03/2024', description: 'فواتير', amount: 18320.0, category: 'invoices', location: 'عام' },
+            { id: 76, date: '03/03/2024', description: 'فواتير الدحوة', amount: 8411.0, category: 'invoices', location: 'الدحو' },
+            { id: 77, date: '18/03/2023', description: 'فواتير العنادية', amount: 539.0, category: 'farm', location: 'العنادية' },
+            { id: 78, date: '04/09/1445', description: 'فواتير الابل + العنادية +المزرعة الجديدة', amount: 23852.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 79, date: '19/03/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 80, date: '20/03/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 81, date: '29/03/2024', description: 'تحويل الى عبدالرحمن صالح عبدالرحمن (بوية للمزرعه الجديدة )', amount: 4008.0, category: 'transfers', location: 'المزرعة الجديدة' },
+            { id: 82, date: '04/01/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 83, date: '02/10/2024', description: 'فواتير ابوبكر', amount: 792.0, category: 'invoices', location: 'عام' },
+            { id: 84, date: '23/03/2024', description: 'فواتير الابل', amount: 597.0, category: 'camels', location: 'عام' },
+            { id: 85, date: '03/08/2024', description: 'فواتير العنادية', amount: 927.0, category: 'farm', location: 'العنادية' },
+            { id: 86, date: '19/03/2024', description: 'فاتورة مؤسسة عاج الزارعية ( الدحوه )', amount: 5150.0, category: 'farm', location: 'الدحو' },
+            { id: 87, date: '03/10/2024', description: 'فواتير الدحوة', amount: 971.0, category: 'invoices', location: 'الدحو' },
+            { id: 88, date: '21/03/2024', description: 'مجموع فواتير المزرعه الجديدة + العنادية', amount: 12385.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 89, date: '29/03/2024', description: 'فواتير الابل + العنادية +المزرعة الجديدة', amount: 4959.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 90, date: '19/03/2024', description: 'فواتير ابوبكر', amount: 203.0, category: 'invoices', location: 'عام' },
+            { id: 91, date: '04/01/2024', description: 'فواتير', amount: 5500.0, category: 'invoices', location: 'عام' },
+            { id: 92, date: '04/03/2024', description: 'فواتير الابل + العنادية +المزرعة الجديدة', amount: 4542.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 93, date: '04/01/2024', description: 'فواتير ابوبكر', amount: 813.0, category: 'invoices', location: 'عام' },
+            { id: 94, date: '30/03/2024', description: 'فواتير احمد', amount: 440.0, category: 'invoices', location: 'عام' },
+            { id: 95, date: '04/09/2024', description: 'فواتير الابل والمزرعة الجديدة', amount: 39394.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 96, date: '', description: 'لبانه ( الدحوه )', amount: 1500.0, category: 'supplies', location: 'الدحو' },
+            { id: 97, date: '', description: 'احمد ( الغنم العنادية )', amount: 500.0, category: 'animals', location: 'العنادية' },
+            { id: 98, date: '', description: 'غسيل ابل', amount: 3000.0, category: 'camels', location: 'عام' },
+            { id: 99, date: '04/08/2024', description: 'تحويل الى عبدالرحمن صالح عبدالرحمن ( يوريا الدحوه )', amount: 5265.0, category: 'transfers', location: 'الدحو' },
+            { id: 100, date: '15/04/2024', description: 'تحويل الى شامان معى السبيعى ( مواسير كيسى للمزرعه', amount: 2700.0, category: 'transfers', location: 'عام' },
+            { id: 101, date: '15/04/2024', description: 'دفعه من عمل بئر المزرعه الدحوه', amount: 10000.0, category: 'workers', location: 'الدحو' },
+            { id: 102, date: '18/04/2024', description: 'تحويل شراء مواسير الكيسى الدحوه', amount: 41000.0, category: 'transfers', location: 'الدحو' },
+            { id: 103, date: '16/04/2024', description: 'شراء علف', amount: 30000.0, category: 'animals', location: 'عام' },
+            { id: 104, date: '', description: 'فواتير', amount: 17448.0, category: 'invoices', location: 'عام' },
+            { id: 105, date: '20/04/2024', description: 'تحويل الى محمد صالح ( عمل تركيب النخل بالمزرعه )', amount: 5200.0, category: 'transfers', location: 'عام' },
+            { id: 106, date: '18/04/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 107, date: '23/04/2024', description: 'الدفعه الاخيره من عمل بئر المزرعه', amount: 14435.0, category: 'workers', location: 'عام' },
+            { id: 108, date: '23/04/2024', description: 'تحويل الى احمد جمعه الموسية ( عمل تنزيل الكيسى لبير المزرعه )', amount: 3720.0, category: 'transfers', location: 'عام' },
+            { id: 109, date: '23/04/2024', description: 'تحويل الى مؤسسة ركائز الابار ( 8 عامود مع التوبى للمزرعه )', amount: 5840.0, category: 'transfers', location: 'عام' },
+            { id: 110, date: '28/04/2024', description: 'فواتير المزرعه والابل', amount: 25714.0, category: 'farm', location: 'عام' },
+            { id: 111, date: '29/04/2024', description: 'تحويل الى مؤسسة ركائز الابار ( ماسورة للمزرعه )', amount: 650.0, category: 'transfers', location: 'عام' },
+            { id: 112, date: '30/04/2024', description: 'تحويل الى مؤسسة عاج الزراعية', amount: 2280.0, category: 'transfers', location: 'عام' },
+            { id: 113, date: '30/04/2024', description: 'تحويل عبدالرحمن الضويان ( يوريا )', amount: 4600.0, category: 'transfers', location: 'عام' },
+            { id: 114, date: '27/04/2024', description: 'تحويل الى ذيب حسن بن هيف', amount: 8160.0, category: 'transfers', location: 'عام' },
+            { id: 115, date: '22/04/2024', description: 'تحويل الى ذيب حسن بن هيف', amount: 11545.0, category: 'transfers', location: 'عام' },
+            { id: 116, date: '23/04/2024', description: 'فواتير الابل', amount: 6337.0, category: 'camels', location: 'عام' },
+            { id: 117, date: '27/09/1445', description: 'فواتير احمد العنادية', amount: 543.0, category: 'farm', location: 'العنادية' },
+            { id: 118, date: '15/04/2024', description: 'فواتير الدحوة', amount: 781.0, category: 'invoices', location: 'الدحو' },
+            { id: 119, date: '04/06/2024', description: 'فواتير ابوبكر', amount: 1551.0, category: 'invoices', location: 'عام' },
+            { id: 120, date: '19/04/2024', description: 'فواتير ابوبكر ( الابل )', amount: 2038.0, category: 'camels', location: 'عام' },
+            { id: 121, date: '', description: 'فواتير الابل والمزرعة الجديدة', amount: 1945.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 122, date: '05/04/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 123, date: '05/05/2024', description: 'دكتور بيطرى الابل', amount: 300.0, category: 'camels', location: 'عام' },
+            { id: 124, date: '05/02/2024', description: 'فواتير ابوبكر', amount: 607.0, category: 'invoices', location: 'عام' },
+            { id: 125, date: '22/04/2024', description: 'فواتير ابوبكر', amount: 1755.0, category: 'invoices', location: 'عام' },
+            { id: 126, date: '', description: 'شغل عمال المزرعة الجديدة', amount: 2400.0, category: 'workers', location: 'المزرعة الجديدة' },
+            { id: 127, date: '04/06/2024', description: 'فواتير المزرعة الجديدة', amount: 5847.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 128, date: '28/04/2024', description: 'فواتير المزرعه والابل', amount: 21900.0, category: 'farm', location: 'عام' },
+            { id: 129, date: '05/07/2024', description: 'تحويل الى محمد صالح ( عمل في تلقيح النخل بالمزرعه )', amount: 2500.0, category: 'transfers', location: 'عام' },
+            { id: 130, date: '05/08/2024', description: 'تحويل الى شركة موارد الاهلية', amount: 1977.0, category: 'transfers', location: 'عام' },
+            { id: 131, date: '28/04/2024', description: 'فواتير الابل', amount: 17335.0, category: 'camels', location: 'عام' },
+            { id: 132, date: '05/07/2024', description: 'مشوار نقل الونش', amount: 1800.0, category: 'supplies', location: 'عام' },
+            { id: 133, date: '05/11/2024', description: 'شراء بلك لمزرعه العنادية', amount: 11000.0, category: 'supplies', location: 'العنادية' },
+            { id: 134, date: '18/04/2024', description: 'فواتير الدحوه + العنادية +المزرعة الجديدة', amount: 5862.0, category: 'invoices', location: 'الدحو' },
+            { id: 135, date: '05/05/2024', description: 'فواتير الابل', amount: 929.0, category: 'camels', location: 'عام' },
+            { id: 136, date: '05/09/2024', description: 'فواتير مدفوعه من ابوتركى', amount: 773.0, category: 'invoices', location: 'عام' },
+            { id: 137, date: '05/10/2024', description: 'حديد للمزرعة', amount: 10265.0, category: 'supplies', location: 'عام' },
+            { id: 138, date: '05/12/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 3500.0, category: 'transfers', location: 'عام' },
+            { id: 139, date: '16/10/1445', description: 'فواتير العنادية ( علاجات الغنم )', amount: 1325.0, category: 'animals', location: 'العنادية' },
+            { id: 140, date: '20/04/2024', description: 'تحميل برسيم االدحوة', amount: 6320.0, category: 'supplies', location: 'الدحو' },
+            { id: 141, date: '05/07/2024', description: 'فاتورة شركة نجد ( الدحوة )', amount: 483.0, category: 'invoices', location: 'الدحو' },
+            { id: 142, date: '05/07/2024', description: 'فاتورة شركة نجد ( الدحوة )', amount: 1535.0, category: 'invoices', location: 'الدحو' },
+            { id: 143, date: '28/04/2024', description: 'فواتير العنادية ( احمد )', amount: 287.0, category: 'farm', location: 'العنادية' },
+            { id: 144, date: '05/11/2024', description: 'فواتير العنادية + الابل', amount: 2360.0, category: 'camels', location: 'العنادية' },
+            { id: 145, date: '25/04/2024', description: 'فواتير الدحوة', amount: 600.0, category: 'invoices', location: 'الدحو' },
+            { id: 146, date: '04/04/2024', description: 'فواتير محمد حسين العنادية', amount: 670.0, category: 'farm', location: 'العنادية' },
+            { id: 147, date: '15/05/2024', description: 'تحويل الى شركة سام العربية للنقليات ( ديزل )', amount: 23000.0, category: 'transfers', location: 'عام' },
+            { id: 148, date: '15/05/2024', description: 'تحويل الى ذيب حسن هيف ( اصلاح البانه للمزرعة )', amount: 2500.0, category: 'transfers', location: 'عام' },
+            { id: 149, date: '14/05/2024', description: 'فواتير المزرعه والابل', amount: 17350.0, category: 'farm', location: 'عام' },
+            { id: 150, date: '15/05/2024', description: 'فواتير ابوبكر ( الابل )', amount: 949.0, category: 'camels', location: 'عام' },
+            { id: 151, date: '25/05/2024', description: 'تحويل الى عبدالرحمن إبراهيم ضويان ( شراء 50كيس يوريا وسلك )', amount: 7100.0, category: 'transfers', location: 'عام' },
+            { id: 152, date: '19/05/2024', description: 'فواتير الابل', amount: 2074.0, category: 'camels', location: 'عام' },
+            { id: 153, date: '20/05/2024', description: 'فواتير احمد العنادية', amount: 224.0, category: 'farm', location: 'العنادية' },
+            { id: 154, date: '19/05/2024', description: 'فواتير العنادية', amount: 4226.0, category: 'farm', location: 'العنادية' },
+            { id: 155, date: '24/05/2024', description: 'فواتير ابوبكر ( الابل )', amount: 515.0, category: 'camels', location: 'عام' },
+            { id: 156, date: '16/05/2024', description: 'فواتير المزرعة الجديدة', amount: 1780.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 157, date: '16/05/2024', description: 'فواتير العنادية + االمزرعه الجديدة', amount: 9675.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 158, date: '28/05/2024', description: 'فواتير', amount: 30800.0, category: 'invoices', location: 'عام' },
+            { id: 159, date: '29/05/2024', description: 'شيك الى محمد صالح ( تركيب شبك بمزرعة العنادية', amount: 7372.0, category: 'transfers', location: 'العنادية' },
+            { id: 160, date: '22/05/2024', description: 'تحميل برسيم االدحوة', amount: 8188.0, category: 'supplies', location: 'الدحو' },
+            { id: 161, date: '25/03/2024', description: 'فواتير', amount: 11520.0, category: 'invoices', location: 'عام' },
+            { id: 162, date: '19/05/2024', description: 'تحويل - م/ على عبدالله الشهرانى', amount: 2800.0, category: 'transfers', location: 'عام' },
+            { id: 163, date: '05/03/2024', description: 'فواتير المزرعه الجديدة + الابل', amount: 2810.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 164, date: '17/05/2024', description: 'فواتير راجو الدحوه', amount: 1053.0, category: 'invoices', location: 'الدحو' },
+            { id: 165, date: '29/05/2024', description: 'فواتير العنادية + االمزرعه الجديدة', amount: 2280.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 166, date: '31/05/2024', description: 'فواتير العنادية + االمزرعه الجديدة', amount: 13480.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 167, date: '30/05/2024', description: 'فواتير ابوبكر ( الابل )', amount: 415.0, category: 'camels', location: 'عام' },
+            { id: 168, date: '28/05/2024', description: 'فواتير احمد العنادية', amount: 263.0, category: 'farm', location: 'العنادية' },
+            { id: 169, date: '05/12/2024', description: 'فواتير كاسورا ( المزرعه الجديدة )', amount: 511.0, category: 'invoices', location: 'المزرعة الجديدة' },
+            { id: 170, date: '21/11/1445', description: 'فواتير البيطرى ( الغنم + الابل )', amount: 1935.0, category: 'animals', location: 'عام' },
+            { id: 171, date: '06/03/2024', description: 'فواتير المزرعه', amount: 16900.0, category: 'farm', location: 'عام' },
+            { id: 172, date: '06/09/2024', description: 'تحويل الى ذيب حسن بن هيف', amount: 4700.0, category: 'transfers', location: 'عام' },
+            { id: 173, date: '23/06/2024', description: 'فواتير', amount: 40375.0, category: 'invoices', location: 'عام' },
+            { id: 174, date: '13/06/2024', description: 'فواتير', amount: 19556.0, category: 'invoices', location: 'عام' },
+            { id: 175, date: '15/06/2024', description: 'فواتير راجو الدحوه', amount: 288.0, category: 'invoices', location: 'الدحو' },
+            { id: 176, date: '14/06/2024', description: 'فواتير راجو الدحوه', amount: 661.0, category: 'invoices', location: 'الدحو' },
+            { id: 177, date: '06/04/2024', description: 'فواتير احمد', amount: 132.0, category: 'invoices', location: 'عام' },
+            { id: 178, date: '23/06/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 3850.0, category: 'transfers', location: 'عام' },
+            { id: 179, date: '29/06/2024', description: 'فواتير', amount: 6010.0, category: 'invoices', location: 'عام' },
+            { id: 180, date: '22/06/2024', description: 'برسيم للدحوه', amount: 5999.0, category: 'supplies', location: 'الدحو' },
+            { id: 181, date: '27/06/2024', description: 'قطع غيار', amount: 1295.0, category: 'supplies', location: 'عام' },
+            { id: 182, date: '24/06/2024', description: 'قطع غيار', amount: 260.0, category: 'supplies', location: 'عام' },
+            { id: 183, date: '27/06/2024', description: 'فواتير الدحوه', amount: 331.0, category: 'invoices', location: 'الدحو' },
+            { id: 184, date: '07/02/2024', description: 'راتب عبدالله', amount: 2000.0, category: 'workers', location: 'عام' },
+            { id: 185, date: '06/12/1444', description: 'فواتير', amount: 290.0, category: 'invoices', location: 'عام' },
+            { id: 186, date: '21/06/2024', description: 'فواتير المزرعة الجديدة', amount: 490.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 187, date: '28/06/2024', description: 'فواتير عبدالهادى', amount: 4316.0, category: 'invoices', location: 'عام' },
+            { id: 188, date: '07/04/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 2300.0, category: 'transfers', location: 'عام' },
+            { id: 189, date: '13/07/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 2070.0, category: 'transfers', location: 'عام' },
+            { id: 190, date: '14/07/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 2530.0, category: 'transfers', location: 'عام' },
+            { id: 191, date: '07/05/2024', description: 'فواتير احمد العنادية', amount: 283.0, category: 'farm', location: 'العنادية' },
+            { id: 192, date: '07/07/2024', description: 'فواتير ابوبكر ( الابل )', amount: 2516.0, category: 'camels', location: 'عام' },
+            { id: 193, date: '06/08/2024', description: 'فواتير ابوبكر ( الابل )', amount: 665.0, category: 'camels', location: 'عام' },
+            { id: 194, date: '31/05/2024', description: 'فواتير ابوبكر', amount: 462.0, category: 'invoices', location: 'عام' },
+            { id: 195, date: '07/01/2024', description: 'فواتير ابوبكر', amount: 788.0, category: 'invoices', location: 'عام' },
+            { id: 196, date: '29/06/2024', description: 'فواتير الدحوه', amount: 1010.0, category: 'invoices', location: 'الدحو' },
+            { id: 197, date: '16/07/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 1310.0, category: 'transfers', location: 'عام' },
+            { id: 198, date: '28/07/2024', description: 'تحويل الى حسن ذيب القحطانى', amount: 4300.0, category: 'transfers', location: 'عام' },
+            { id: 199, date: '06/01/1446', description: 'فواتير الابل', amount: 720.0, category: 'camels', location: 'عام' },
+            { id: 200, date: '18/07/2024', description: 'سلك لبانه التميز', amount: 1680.0, category: 'supplies', location: 'عام' },
+            { id: 201, date: '20/07/2024', description: 'فواتير أبو بكر', amount: 3098.0, category: 'invoices', location: 'عام' },
+            { id: 202, date: '26/07/2024', description: 'فواتير الدحوه', amount: 460.0, category: 'invoices', location: 'الدحو' },
+            { id: 203, date: '08/03/2024', description: 'تحويل الى عبدالله إبراهيم عبدالله جماز', amount: 2000.0, category: 'transfers', location: 'عام' },
+            { id: 204, date: '08/03/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 3450.0, category: 'transfers', location: 'عام' },
+            { id: 205, date: '08/05/2024', description: 'تحويل الى شركة موارد الاهلية الزراعيه', amount: 1836.0, category: 'transfers', location: 'عام' },
+            { id: 206, date: '08/05/2024', description: 'مصاريف بدون فواتير', amount: 48700.0, category: 'without', location: 'عام' },
+            { id: 207, date: '08/06/2024', description: 'فواتير الابل', amount: 6010.0, category: 'camels', location: 'عام' },
+            { id: 208, date: '24/07/2024', description: 'فواتير الدحوه', amount: 385.0, category: 'invoices', location: 'الدحو' },
+            { id: 209, date: '20/07/2024', description: 'فواتير العنادية', amount: 377.0, category: 'farm', location: 'العنادية' },
+            { id: 210, date: '08/08/2024', description: 'تحويل الى سام العربية للنقليات ( الدحوه)', amount: 23000.0, category: 'transfers', location: 'الدحو' },
+            { id: 211, date: '08/10/2024', description: 'مجمع فواتير رواتب+نخل+قلابات+اعاشه+عهد (بدر)', amount: 29560.0, category: 'workers', location: 'عام' },
+            { id: 212, date: '18/08/2024', description: 'مجمع فواتير أبو بكر', amount: 726.0, category: 'invoices', location: 'عام' },
+            { id: 213, date: '20/08/2024', description: 'مجمع فواتير أبو بكر', amount: 1019.0, category: 'invoices', location: 'عام' },
+            { id: 214, date: '21/08/2024', description: 'مجمع فواتير الابل + رجيم ( بدر )', amount: 56992.0, category: 'camels', location: 'عام' },
+            { id: 215, date: '24/08/2024', description: 'مجمع فواتير +شراء غنم + اعلاف (عبدالهادي)', amount: 146922.0, category: 'animals', location: 'عام' },
+            { id: 216, date: '03/09/2024', description: 'مصاريف بدون فواتير', amount: 74411.0, category: 'without', location: 'عام' },
+            { id: 217, date: '03/08/2024', description: 'فواتير الدحوه', amount: 1951.0, category: 'invoices', location: 'الدحو' },
+            { id: 218, date: '09/08/2024', description: 'فواتير احمد', amount: 433.0, category: 'invoices', location: 'عام' },
+            { id: 219, date: '20/08/2024', description: 'فواتير عبدالهادى', amount: 7041.0, category: 'invoices', location: 'عام' },
+            { id: 220, date: '07/08/2024', description: 'فواتير عبدالهادى', amount: 449.0, category: 'invoices', location: 'عام' },
+            { id: 221, date: '04/09/2024', description: 'تحويل الى حسن ذيب القحطانى', amount: 5600.0, category: 'transfers', location: 'عام' },
+            { id: 222, date: '02/08/2024', description: 'فواتير الابل', amount: 2379.0, category: 'camels', location: 'عام' },
+            { id: 223, date: '15/09/2024', description: 'فواتير المزرعه والابل', amount: 22364.0, category: 'farm', location: 'عام' },
+            { id: 224, date: '09/09/2024', description: 'فواتير الابل', amount: 585.0, category: 'camels', location: 'عام' },
+            { id: 225, date: '06/09/2024', description: 'فواتير احمد العنادية', amount: 281.0, category: 'farm', location: 'العنادية' },
+            { id: 226, date: '11/09/2024', description: 'فواتير متنوعه', amount: 11748.0, category: 'invoices', location: 'عام' },
+            { id: 227, date: '22/08/2024', description: 'فواتير رجيم الدحوه', amount: 1179.0, category: 'invoices', location: 'الدحو' },
+            { id: 228, date: '', description: 'حشغل حداد + شغل يد عمال المزارع', amount: 9400.0, category: 'workers', location: 'عام' },
+            { id: 229, date: '22/09/2024', description: 'فواتير الابل ابوبكر', amount: 685.0, category: 'camels', location: 'عام' },
+            { id: 230, date: '22/09/2024', description: 'راتب عبدالله', amount: 2000.0, category: 'workers', location: 'عام' },
+            { id: 231, date: '24/09/2024', description: 'فواتير المزرعه الجديدة', amount: 2162.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 232, date: '11/06/2024', description: 'فواتير المزرعه الجديدة', amount: 780.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 233, date: '25/08/2024', description: 'فواتير العنادية', amount: 4100.0, category: 'farm', location: 'العنادية' },
+            { id: 234, date: '17/09/2024', description: 'فواتير ابوبكر', amount: 683.0, category: 'invoices', location: 'عام' },
+            { id: 235, date: '06/10/2024', description: 'فواتير المزرعه والابل', amount: 95971.0, category: 'farm', location: 'عام' },
+            { id: 236, date: '06/10/2024', description: 'تحميل برسيم', amount: 3588.0, category: 'supplies', location: 'عام' },
+            { id: 237, date: '05/10/2024', description: 'تحويل الى باتل محمد العماج القحطانى', amount: 7500.0, category: 'transfers', location: 'عام' },
+            { id: 238, date: '05/10/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 10800.0, category: 'transfers', location: 'عام' },
+            { id: 239, date: '29/09/2024', description: 'فواتير ابوبكر ( الابل )', amount: 2928.0, category: 'camels', location: 'عام' },
+            { id: 240, date: '22/09/2024', description: 'فواتير احمد العنادية', amount: 425.0, category: 'farm', location: 'العنادية' },
+            { id: 241, date: '02/10/2024', description: 'فواتير المزرعه الجديدة والابل والعنادية', amount: 8046.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 242, date: '09/10/2024', description: 'دفعه من عمل الحداد بالمزرعه', amount: 8000.0, category: 'workers', location: 'عام' },
+            { id: 243, date: '09/10/2024', description: 'تحويل تسوية فواتير', amount: 5054.0, category: 'transfers', location: 'عام' },
+            { id: 244, date: '12/10/2024', description: 'تحويل الى مؤسسة دارى الزراعية', amount: 11475.0, category: 'transfers', location: 'عام' },
+            { id: 245, date: '12/10/2024', description: 'تحويل الى مؤسسة تعمير المدن للتجارة', amount: 23016.0, category: 'transfers', location: 'عام' },
+            { id: 246, date: '08/10/2024', description: 'فواتير الابل', amount: 1518.0, category: 'camels', location: 'عام' },
+            { id: 247, date: '30/09/2024', description: 'فواتير المزرعه الجديدة+ الابل', amount: 5033.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 248, date: '18/10/2024', description: 'اجور عمال البذر للمزرعه', amount: 2550.0, category: 'workers', location: 'عام' },
+            { id: 249, date: '13/10/2024', description: 'بذور', amount: 2094.0, category: 'supplies', location: 'عام' },
+            { id: 250, date: '18/10/2024', description: 'تحويل الى شركة عبدالله ابراهيم جماز الزراعية', amount: 6070.0, category: 'transfers', location: 'عام' },
+            { id: 251, date: '19/10/2024', description: 'تحويل الى ذيب حسن بن هيف', amount: 1850.0, category: 'transfers', location: 'عام' },
+            { id: 252, date: '20/10/2024', description: 'مصاريف بدون فواتير', amount: 24009.0, category: 'without', location: 'عام' },
+            { id: 253, date: '16/10/2024', description: 'فواتير المزرعة الجديدة', amount: 2320.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 254, date: '10/10/2024', description: 'فواتير المزرعه الجديدة + الابل', amount: 1066.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 255, date: '23/10/2024', description: 'تحويل الى مؤسسة تعمير المدن للتجارة', amount: 2472.0, category: 'transfers', location: 'عام' },
+            { id: 256, date: '24/10/2024', description: 'تحويل الى مؤسسة تعمير المدن للتجارة', amount: 2025.0, category: 'transfers', location: 'عام' },
+            { id: 257, date: '28/10/2024', description: 'مصاريف بدون فواتير', amount: 80951.0, category: 'without', location: 'عام' },
+            { id: 258, date: '10/11/2024', description: 'فاتورة مؤسسة عاج الزارعية ( المزرعة الجديدة )', amount: 1110.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 259, date: '18/10/2024', description: 'فواتير المزرعة الجديدة', amount: 2719.0, category: 'farm', location: 'المزرعة الجديدة' },
+            { id: 260, date: '17/10/2024', description: 'فواتير ابوبكر ( الابل )', amount: 966.0, category: 'camels', location: 'عام' },
+            { id: 261, date: '10/07/2024', description: 'اسمنت للمزرعه الجديدة + الابل', amount: 112.0, category: 'supplies', location: 'المزرعة الجديدة' },
+            { id: 262, date: '11/01/2024', description: 'تحويل الى عبدالهادى محمد شجاع ( مشتريات )', amount: 1350.0, category: 'transfers', location: 'عام' },
+            { id: 263, date: '31/10/2024', description: 'تحويل الى شركة عبدالله ابراهيم جماز الزراعية', amount: 3865.0, category: 'transfers', location: 'عام' },
+            { id: 264, date: '30/10/2024', description: 'فواتير المزرعه الجديدة والابل', amount: 733.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 265, date: '24/10/2024', description: 'فاتورة مؤسسة تعمير المدن للتجارة', amount: 1925.0, category: 'invoices', location: 'عام' },
+            { id: 266, date: '23/10/2024', description: 'فاتورة مؤسسة تعمير المدن للتجارة', amount: 2322.0, category: 'invoices', location: 'عام' },
+            { id: 267, date: '26/10/2024', description: 'فاتورة مؤسسة عاج الزراعية ( العنادية)', amount: 2000.0, category: 'farm', location: 'العنادية' },
+            { id: 268, date: '28/10/2024', description: 'فاتورة مؤسسة عاج الزراعية ( الدحوة )', amount: 1865.0, category: 'farm', location: 'الدحو' },
+            { id: 269, date: '20/10/2024', description: 'فواتير العنادية', amount: 4185.0, category: 'farm', location: 'العنادية' },
+            { id: 270, date: '29/10/2024', description: 'فواتير الابل والدحوه والمزرعة الجديدة', amount: 8162.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 271, date: '04/06/1446', description: 'فواتير', amount: 1115.0, category: 'invoices', location: 'عام' },
+            { id: 272, date: '29/10/2024', description: 'فواتير ابوبكر', amount: 1135.0, category: 'invoices', location: 'عام' },
+            { id: 273, date: '09/10/2024', description: 'فواتير احمد+ فاتورة اصلاح كلاتش', amount: 2832.0, category: 'invoices', location: 'عام' },
+            { id: 274, date: '12/04/1446', description: 'فواتير احمد', amount: 495.0, category: 'invoices', location: 'عام' },
+            { id: 275, date: '23/10/2024', description: 'فواتير محمد حسين', amount: 279.0, category: 'invoices', location: 'عام' },
+            { id: 276, date: '10/12/2024', description: 'فواتير البرسيم', amount: 2574.0, category: 'supplies', location: 'عام' },
+            { id: 277, date: '28/10/2024', description: 'فواتير راجو الدحوه', amount: 802.0, category: 'invoices', location: 'الدحو' },
+            { id: 278, date: '29/10/2024', description: 'فواتير الابل + الدحوة +المزرعة الجديدة', amount: 8162.0, category: 'camels', location: 'المزرعة الجديدة' },
+            { id: 279, date: '20/11/2024', description: 'مصروفات بدون فواتير', amount: 46879.0, category: 'without', location: 'عام' },
+            { id: 280, date: '11/10/2024', description: 'فاتورة بيت ابوسعيد', amount: 5700.0, category: 'invoices', location: 'عام' },
+            { id: 281, date: '11/09/2024', description: 'فواتير راجو الدحوه', amount: 795.0, category: 'invoices', location: 'الدحو' },
+            { id: 282, date: '', description: 'فاتورة بيت ابوسعيد ( تنظيف وخلع الاشجار )', amount: 3800.0, category: 'invoices', location: 'عام' },
+            { id: 283, date: '11/09/2024', description: 'فاتورة بيت ابوسعيد', amount: 1700.0, category: 'invoices', location: 'عام' },
+            { id: 284, date: '11/06/2024', description: 'فواتير الابل والعنادية', amount: 26157.0, category: 'camels', location: 'العنادية' },
+            { id: 285, date: '28/10/2024', description: 'فواتير العنادية', amount: 265.0, category: 'farm', location: 'العنادية' },
+            { id: 286, date: '11/01/2024', description: 'فواتير الابل', amount: 2440.0, category: 'camels', location: 'عام' },
+            { id: 287, date: '11/09/2024', description: 'مصروفات بدون فواتير', amount: 37064.0, category: 'without', location: 'عام' },
+            { id: 288, date: '18/11/2024', description: 'تحويل الى عبدالهادى محمد شجاع ( فواتير للمزارع )', amount: 12500.0, category: 'transfers', location: 'عام' },
+            { id: 289, date: '18/11/2024', description: 'تحويل الى عبدالهادى محمد شجاع (شراء علف للغنم)', amount: 15000.0, category: 'transfers', location: 'عام' },
+            { id: 290, date: '', description: 'برسيم + حق التمر', amount: 21096.0, category: 'supplies', location: 'عام' },
+            { id: 291, date: '21/11/2024', description: 'تحويل الى عبدالمجيد فارس فالح الخنفرى', amount: 900.0, category: 'transfers', location: 'عام' },
+            { id: 292, date: '21/11/2024', description: 'تحويل الى مؤسسة تعمير المدن للتجارة', amount: 3342.0, category: 'transfers', location: 'عام' },
+            { id: 293, date: '25/04/1446', description: 'فواتير العنادية', amount: 2565.0, category: 'farm', location: 'العنادية' },
+            { id: 294, date: '28/10/2024', description: 'فاتورة العنادية', amount: 1175.0, category: 'farm', location: 'العنادية' },
+            { id: 295, date: '11/09/2024', description: 'فواتير الابل', amount: 2388.0, category: 'camels', location: 'عام' },
+            { id: 296, date: '24/11/2024', description: 'تحويل الى عبدالهادى محمد شجاع ( شراء برسيم للابل )', amount: 11552.0, category: 'transfers', location: 'عام' },
+            { id: 297, date: '11/07/2024', description: 'فواتير الابل', amount: 3605.0, category: 'camels', location: 'عام' },
+            { id: 298, date: '20/11/2024', description: 'فواتير ابوموسى', amount: 510.0, category: 'invoices', location: 'عام' },
+            { id: 299, date: '11/10/2024', description: 'فواتير', amount: 239.0, category: 'invoices', location: 'عام' },
+            { id: 300, date: '11/10/2024', description: 'فواتير راجو الدحوه', amount: 332.0, category: 'invoices', location: 'الدحو' },
+            { id: 301, date: '11/06/2024', description: 'فواتير احمد', amount: 1438.0, category: 'invoices', location: 'عام' },
+            { id: 302, date: '11/03/2024', description: 'فواتير موسى', amount: 634.0, category: 'invoices', location: 'عام' },
+            { id: 303, date: '24/11/2024', description: 'مصروفات بدون فواتير', amount: 42951.0, category: 'without', location: 'عام' },
+            { id: 304, date: '24/11/2024', description: 'تحويل الى عبدالهادى محمد شجاع ( شراء شعير للغنم )', amount: 19200.0, category: 'transfers', location: 'عام' },
+            { id: 305, date: '27/11/2024', description: 'فواتير ابوبكر', amount: 916.0, category: 'invoices', location: 'عام' },
+            { id: 306, date: '30/11/2024', description: 'فاتورة تصنيع تمور', amount: 10000.0, category: 'invoices', location: 'عام' },
+            { id: 307, date: '30/11/2024', description: 'تحويل الى عبدالهادى محمد شراء برسيم للغنم والابل', amount: 14630.0, category: 'transfers', location: 'عام' },
+            { id: 308, date: '12/05/2024', description: 'تحويل الى شركة عبدالله ابراهيم جماز الزراعية', amount: 4250.0, category: 'transfers', location: 'عام' },
+            { id: 309, date: '12/05/2024', description: 'تحويل الى ورشة ذيب حسن هيف القحطانى', amount: 1800.0, category: 'transfers', location: 'عام' },
+            { id: 310, date: '12/08/2024', description: 'تحويل الى شركة نجد للزراعه', amount: 6096.0, category: 'transfers', location: 'عام' },
+            { id: 311, date: '12/04/2024', description: 'فواتير الابل', amount: 5018.0, category: 'camels', location: 'عام' },
+            { id: 312, date: '12/01/2024', description: 'فواتير راجو الدحوه', amount: 499.0, category: 'invoices', location: 'الدحو' },
+            { id: 313, date: '20/11/1446', description: 'فواتير الابل', amount: 8507.0, category: 'camels', location: 'عام' },
+            { id: 314, date: '04/09/1446', description: 'فواتير الغنم', amount: 3064.0, category: 'animals', location: 'عام' },
+            { id: 315, date: '12/02/2024', description: 'فواتير محمد حسين', amount: 970.0, category: 'invoices', location: 'عام' },
+            { id: 316, date: '30/11/2024', description: 'فواتير ابوبكر ( الابل )', amount: 1695.0, category: 'camels', location: 'عام' },
+            { id: 317, date: '27/11/2024', description: 'فواتير', amount: 1734.0, category: 'invoices', location: 'عام' },
+            { id: 318, date: '27/11/2024', description: 'فواتير العنادية النخل', amount: 2757.0, category: 'farm', location: 'العنادية' },
+            { id: 319, date: '24/11/2024', description: 'فاتورة مؤسسة عاج', amount: 385.0, category: 'invoices', location: 'عام' },
+            { id: 320, date: '12/01/2024', description: 'فاتورة مخرطه بن هيف ( العنادية )', amount: 1800.0, category: 'supplies', location: 'العنادية' },
+            { id: 321, date: '11/09/2024', description: 'فواتير الابل', amount: 397.0, category: 'camels', location: 'عام' },
+            { id: 322, date: '11/11/2024', description: 'فواتير', amount: 410.0, category: 'invoices', location: 'عام' },
+            { id: 323, date: '12/10/2024', description: 'فواتير ابواحمد', amount: 407.0, category: 'invoices', location: 'عام' },
+            { id: 324, date: '24/11/2024', description: 'فواتير احمد', amount: 779.0, category: 'invoices', location: 'عام' },
+            { id: 325, date: '12/12/2024', description: 'فواتير الابل', amount: 2739.0, category: 'camels', location: 'عام' },
+            { id: 326, date: '12/12/2024', description: 'فاتورة الابل', amount: 280.0, category: 'camels', location: 'عام' },
+            { id: 327, date: '14/12/2024', description: 'فواتير ابوبكر', amount: 391.0, category: 'invoices', location: 'عام' },
+            { id: 328, date: '16/12/2024', description: 'فواتير الابل', amount: 12069.0, category: 'camels', location: 'عام' },
+            { id: 329, date: '12/09/2024', description: 'فواتير راجو الدحوه', amount: 969.0, category: 'invoices', location: 'الدحو' },
+            { id: 330, date: '12/08/2024', description: 'مصروفات بدون فواتير', amount: 11347.0, category: 'without', location: 'عام' },
+            { id: 331, date: '16/12/2024', description: 'مصروفات بدون فواتير', amount: 10630.0, category: 'without', location: 'عام' },
+            { id: 332, date: '21/12/2024', description: 'مصروفات بدون فواتير', amount: 17129.0, category: 'without', location: 'عام' },
+            { id: 333, date: '28/12/2024', description: 'تحويل الى احمد عبدالقادر حسين دفعه من حساب الحديد', amount: 5000.0, category: 'transfers', location: 'عام' },
+            { id: 334, date: '05/06/1446', description: 'فواتير صيدلية ركن النوادر', amount: 1755.0, category: 'invoices', location: 'عام' },
+            { id: 335, date: '16/12/2024', description: 'فواتير', amount: 619.0, category: 'invoices', location: 'عام' },
+            { id: 336, date: '16/12/2024', description: 'فواتير الابل', amount: 1565.0, category: 'camels', location: 'عام' },
+            { id: 337, date: '15/12/2024', description: 'فواتير', amount: 1681.0, category: 'invoices', location: 'عام' },
+            { id: 338, date: '20/12/2024', description: 'فاتورة العنادية', amount: 2030.0, category: 'farm', location: 'العنادية' },
+            { id: 339, date: '18/12/2024', description: 'فاتورة مؤسسة عاج الزراعية', amount: 430.0, category: 'invoices', location: 'عام' },
+            { id: 340, date: '29/12/2024', description: 'مصروفات بدون فواتير', amount: 22071.0, category: 'without', location: 'عام' }
+        ];
+
+        let filteredData = [...expensesData];
+        let categoryChart, monthlyChart, topExpensesChart;
+
+        // وظائف المساعدة
+        function formatNumber(num) {
+            return new Intl.NumberFormat('ar-SA').format(num);
+        }
+
+        function getCategoryName(category) {
+            const categories = {
+                'camels': 'الإبل',
+                'farm': 'المزرعة',
+                'transfers': 'التحويلات',
+                'invoices': 'الفواتير',
+                'without': 'بدون فواتير',
+                'workers': 'عمال وأجور',
+                'animals': 'الحيوانات',
+                'supplies': 'مستلزمات'
+            };
+            return categories[category] || category;
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                'camels': '#4e73df',
+                'farm': '#1cc88a',
+                'transfers': '#36b9cc',
+                'invoices': '#f6c23e',
+                'without': '#e74a3b',
+                'workers': '#6f42c1',
+                'animals': '#20c997',
+                'supplies': '#fd7e14'
+            };
+            return colors[category] || '#6c757d';
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return null;
+        }
+
+        function getQuarter(date) {
+            const month = date.getMonth() + 1;
+            if (month >= 1 && month <= 3) return 'q1';
+            if (month >= 4 && month <= 6) return 'q2';
+            if (month >= 7 && month <= 9) return 'q3';
+            return 'q4';
+        }
+
+        // تطبيق الفلاتر
+        function applyFilters() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const amountFilter = document.getElementById('amountFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+            
+            filteredData = expensesData.filter(item => {
+                // فلترة التصنيف
+                if (categoryFilter !== 'all' && item.category !== categoryFilter) {
+                    return false;
+                }
+                
+                // فلترة التاريخ
+                if (dateFilter !== 'all') {
+                    const itemDate = parseDate(item.date);
+                    if (!itemDate) return false;
+                    
+                    if (dateFilter === '2023' && itemDate.getFullYear() !== 2023) return false;
+                    if (dateFilter === '2024' && itemDate.getFullYear() !== 2024) return false;
+                    
+                    if (['q1', 'q2', 'q3', 'q4'].includes(dateFilter)) {
+                        if (itemDate.getFullYear() !== 2024) return false;
+                        if (getQuarter(itemDate) !== dateFilter) return false;
+                    }
+                }
+                
+                // فلترة المبلغ
+                if (amountFilter !== 'all') {
+                    if (amountFilter === 'high' && item.amount < 10000) return false;
+                    if (amountFilter === 'medium' && (item.amount >= 10000 || item.amount < 1000)) return false;
+                    if (amountFilter === 'low' && item.amount >= 1000) return false;
+                }
+                
+                // فلترة الموقع
+                if (locationFilter !== 'all' && item.location !== locationFilter) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            updateDashboard();
+            updateActiveFiltersBadge();
+        }
+
+        function updateActiveFiltersBadge() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const amountFilter = document.getElementById('amountFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+            
+            const activeFilters = [
+                categoryFilter !== 'all',
+                dateFilter !== 'all',
+                amountFilter !== 'all',
+                locationFilter !== 'all'
+            ].filter(Boolean).length;
+            
+            const badge = document.getElementById('activeFiltersBadge');
+            if (activeFilters > 0) {
+                badge.textContent = `${activeFilters} فلاتر نشطة`;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('dateFilter').value = 'all';
+            document.getElementById('amountFilter').value = 'all';
+            document.getElementById('locationFilter').value = 'all';
+            
+            filteredData = [...expensesData];
+            updateDashboard();
+            updateActiveFiltersBadge();
+        }
+
+        // تحديث اللوحة
+        function updateDashboard() {
+            updateSummaryCards();
+            updateDataTable();
+            updateCharts();
+            updateSummaryPanels();
+        }
+
+        function updateSummaryCards() {
+            const totalTransactions = filteredData.length;
+            const totalAmount = filteredData.reduce((sum, item) => sum + item.amount, 0);
+            const averageTransaction = totalTransactions > 0 ? Math.round(totalAmount / totalTransactions) : 0;
+            const highestTransaction = filteredData.length > 0 ? Math.max(...filteredData.map(item => item.amount)) : 0;
+            
+            // الحصول على عدد الأشهر الفريدة
+            const uniqueMonths = new Set();
+            filteredData.forEach(item => {
+                const date = parseDate(item.date);
+                if (date) {
+                    uniqueMonths.add(`${date.getFullYear()}-${date.getMonth()}`);
+                }
+            });
+            const monthsCount = uniqueMonths.size;
+            
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+            document.getElementById('averageTransaction').textContent = `${formatNumber(averageTransaction)} ر.س`;
+            document.getElementById('highestTransaction').textContent = `${formatNumber(highestTransaction)} ر.س`;
+            document.getElementById('monthsCount').textContent = monthsCount;
+            document.getElementById('totalAmount').textContent = formatNumber(totalAmount) + '.00';
+            document.getElementById('footerTotal').textContent = formatNumber(totalAmount) + '.00';
+            document.getElementById('summaryTotal').textContent = `${formatNumber(totalAmount)} ر.س`;
+            
+            document.getElementById('filteredCount').textContent = `(${totalTransactions})`;
+        }
+
+        function updateDataTable() {
+            const tableBody = document.querySelector('#expensesTable tbody');
+            tableBody.innerHTML = '';
+            
+            filteredData.forEach(expense => {
+                const row = document.createElement('tr');
+                if (expense.amount > 10000) {
+                    row.classList.add('highlight');
+                }
+                
+                // تحديد شارة التصنيف
+                let categoryBadge = '';
+                switch(expense.category) {
+                    case 'camels':
+                        categoryBadge = '<span class="badge bg-success badge-category">الإبل</span>';
+                        break;
+                    case 'farm':
+                        categoryBadge = '<span class="badge bg-primary badge-category">المزرعة</span>';
+                        break;
+                    case 'transfers':
+                        categoryBadge = '<span class="badge bg-info badge-category">التحويلات</span>';
+                        break;
+                    case 'invoices':
+                        categoryBadge = '<span class="badge bg-warning badge-category">الفواتير</span>';
+                        break;
+                    case 'without':
+                        categoryBadge = '<span class="badge bg-danger badge-category">بدون فاتورة</span>';
+                        break;
+                    case 'workers':
+                        categoryBadge = '<span class="badge bg-purple badge-category">عمال وأجور</span>';
+                        break;
+                    case 'animals':
+                        categoryBadge = '<span class="badge bg-teal badge-category">الحيوانات</span>';
+                        break;
+                    case 'supplies':
+                        categoryBadge = '<span class="badge bg-orange badge-category">مستلزمات</span>';
+                        break;
+                }
+                
+                // تحديد لون المبلغ
+                let amountClass = '';
+                if (expense.amount >= 10000) {
+                    amountClass = 'amount-high';
+                } else if (expense.amount >= 1000) {
+                    amountClass = 'amount-medium';
+                } else {
+                    amountClass = 'amount-low';
+                }
+                
+                row.innerHTML = `
+                    <td>${expense.id}</td>
+                    <td>${expense.date || 'غير محدد'}</td>
+                    <td>${expense.description}</td>
+                    <td class="${amountClass}">${formatNumber(expense.amount)}</td>
+                    <td>${categoryBadge}</td>
+                    <td>${expense.location}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateCharts() {
+            // تحديث مخطط التصنيفات
+            const categoryData = {};
+            filteredData.forEach(item => {
+                categoryData[item.category] = (categoryData[item.category] || 0) + item.amount;
+            });
+            
+            const categoryLabels = Object.keys(categoryData).map(getCategoryName);
+            const categoryValues = Object.values(categoryData);
+            const categoryColors = Object.keys(categoryData).map(getCategoryColor);
+            
+            if (categoryChart) {
+                categoryChart.data.labels = categoryLabels;
+                categoryChart.data.datasets[0].data = categoryValues;
+                categoryChart.data.datasets[0].backgroundColor = categoryColors;
+                categoryChart.update();
+            }
+            
+            // تحديث مخطط الاتجاه الشهري
+            const monthlyData = Array(12).fill(0);
+            const monthlyLabels = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            
+            filteredData.forEach(item => {
+                const date = parseDate(item.date);
+                if (date) {
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    if (year === 2023 || year === 2024) {
+                        // تحويل 2023 إلى 2024 للتبسيط
+                        monthlyData[month] += item.amount;
+                    }
+                }
+            });
+            
+            if (monthlyChart) {
+                monthlyChart.data.datasets[0].data = monthlyData;
+                monthlyChart.update();
+            }
+            
+            // تحديث مخطط أعلى المصاريف
+            const topExpenses = [...filteredData]
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 5);
+            
+            const topLabels = topExpenses.map(item => {
+                const desc = item.description.length > 15 ? item.description.substring(0, 15) + '...' : item.description;
+                return desc;
+            });
+            const topValues = topExpenses.map(item => item.amount);
+            
+            if (topExpensesChart) {
+                topExpensesChart.data.labels = topLabels;
+                topExpensesChart.data.datasets[0].data = topValues;
+                topExpensesChart.update();
+            }
+        }
+
+        function updateSummaryPanels() {
+            // تحديث ملخص التصنيفات
+            const categorySummary = document.getElementById('categorySummary');
+            categorySummary.innerHTML = '';
+            
+            const categoryData = {};
+            filteredData.forEach(item => {
+                categoryData[item.category] = (categoryData[item.category] || 0) + item.amount;
+            });
+            
+            Object.entries(categoryData).forEach(([category, amount]) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    <span><i class="fas fa-${getCategoryIcon(category)} me-2"></i>${getCategoryName(category)}</span>
+                    <span class="badge bg-primary rounded-pill">${formatNumber(amount)} ر.س</span>
+                `;
+                categorySummary.appendChild(li);
+            });
+            
+            // تحديث ملخص المواقع
+            const locationSummary = document.getElementById('locationSummary');
+            locationSummary.innerHTML = '';
+            
+            const locationData = {};
+            filteredData.forEach(item => {
+                locationData[item.location] = (locationData[item.location] || 0) + item.amount;
+            });
+            
+            Object.entries(locationData).forEach(([location, amount]) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    <span><i class="fas fa-map-marker-alt me-2"></i>${location}</span>
+                    <span class="badge bg-success rounded-pill">${formatNumber(amount)} ر.س</span>
+                `;
+                locationSummary.appendChild(li);
+            });
+            
+            // تحديث أكبر المعاملات
+            const topTransactionsTable = document.querySelector('#topTransactionsTable tbody');
+            topTransactionsTable.innerHTML = '';
+            
+            const topTransactions = [...filteredData]
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 5);
+            
+            topTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.date || 'غير محدد'}</td>
+                    <td>${transaction.description.substring(0, 20)}...</td>
+                    <td class="amount-high">${formatNumber(transaction.amount)} ر.س</td>
+                `;
+                topTransactionsTable.appendChild(row);
+            });
+            
+            // تحديث ملخص البيانات
+            const topCategoryEntry = Object.entries(categoryData).sort((a, b) => b[1] - a[1])[0];
+            const topLocationEntry = Object.entries(locationData).sort((a, b) => b[1] - a[1])[0];
+            
+            document.getElementById('topCategory').textContent = 
+                topCategoryEntry ? `${getCategoryName(topCategoryEntry[0])} (${formatNumber(topCategoryEntry[1])} ر.س)` : 'لا توجد بيانات';
+            document.getElementById('topLocation').textContent = 
+                topLocationEntry ? `${topLocationEntry[0]} (${formatNumber(topLocationEntry[1])} ر.س)` : 'لا توجد بيانات';
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'camels': 'horse',
+                'farm': 'tractor',
+                'transfers': 'exchange-alt',
+                'invoices': 'file-invoice',
+                'without': 'receipt',
+                'workers': 'users',
+                'animals': 'paw',
+                'supplies': 'box'
+            };
+            return icons[category] || 'chart-pie';
+        }
+
+        // تهيئة المخططات وجدول البيانات
+        document.addEventListener('DOMContentLoaded', function() {
+            // مخطط التصنيفات
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            categoryChart = new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true
+                        }
+                    }
+                }
+            });
+
+            // مخطط الاتجاه الشهري
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+                    datasets: [{
+                        label: 'المصاريف الشهرية (ر.س)',
+                        data: [],
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // مخطط أعلى المصاريف
+            const topExpensesCtx = document.getElementById('topExpensesChart').getContext('2d');
+            topExpensesChart = new Chart(topExpensesCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'المبلغ (ر.س)',
+                        data: [],
+                        backgroundColor: '#1cc88a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // إعداد معالجات الأحداث للفلاتر
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('dateFilter').addEventListener('change', applyFilters);
+            document.getElementById('amountFilter').addEventListener('change', applyFilters);
+            document.getElementById('locationFilter').addEventListener('change', applyFilters);
+            document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+            // وظيفة زر التصدير
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                // إنشاء بيانات CSV للتصدير
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+                csvContent += "رقم,التاريخ,البيان,المبلغ,التصنيف,الموقع\n";
+                
+                filteredData.forEach(item => {
+                    csvContent += `${item.id},${item.date || ''},"${item.description}",${item.amount},${getCategoryName(item.category)},${item.location}\n`;
+                });
+                
+                // إنشاء رابط تنزيل
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "مصاريف_المزرعة.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // التهيئة الأولية
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>

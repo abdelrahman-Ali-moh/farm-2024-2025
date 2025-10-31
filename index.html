@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>الصفحة الرئيسية - لوحات مصاريف المزرعة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Tajawal', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #eef3f6);
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .container {
+      width: 100%;
+      max-width: 980px;
+    }
+    header {
+      background: linear-gradient(135deg, #0f766e, #065f46);
+      color: white;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    header p {
+      margin: 0;
+      opacity: .95;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      padding: 20px;
+      transition: transform .2s ease, box-shadow .2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    }
+    .badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: #ecfeff;
+      color: #0e7490;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #a5f3fc;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      color: #065f46;
+    }
+    .card p {
+      margin: 0 0 18px;
+      color: #4b5563;
+      line-height: 1.7;
+      min-height: 48px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    a.btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      color: #111827;
+      background: #f9fafb;
+      transition: background .2s ease, border-color .2s ease;
+      font-weight: 600;
+    }
+    a.btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+    a.btn.primary {
+      background: #0ea5e9;
+      border-color: #0284c7;
+      color: #fff;
+    }
+    a.btn.primary:hover { background: #0284c7; }
+    footer {
+      text-align: center;
+      margin-top: 22px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>الصفحة الرئيسية</h1>
+      <p>اختر لوحة السنة التي تريد فتحها</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <span class="badge">جديد 2025</span>
+        <h2>لوحة مصاريف المزرعة والإبل 2025</h2>
+        <p>عرض تفاعلي للبيانات مع فلاتر ومخططات ورسوم بيانية لعام 2025.</p>
+        <div class="actions">
+          <a class="btn primary" href="مصاريف المزرعة - 2025.html">فتح لوحة 2025</a>
+          <a class="btn" href="مصاريف المزرعة - 2025.html" target="_blank" rel="noopener">فتح في تبويب جديد</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>لوحة مصاريف المزرعة 2024</h2>
+        <p>لوحة شاملة لتتبع مصاريف 2023–2024 مع تبويبات، جداول، وتصدير بيانات.</p>
+        <div class="actions">
+          <a class="btn primary" href="مصاريف المزرعة - 2024.html">فتح لوحة 2024</a>
+          <a class="btn" href="مصاريف المزرعة - 2024.html" target="_blank" rel="noopener">فتح في تبويب جديد</a>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <small>ضع هذا الملف في نفس المجلد مع الملفات الأخرى لضمان عمل الروابط.</small>
+    </footer>
+  </div>
+</body>
+</html>
