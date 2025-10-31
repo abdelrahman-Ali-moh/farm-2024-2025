@@ -13,202 +13,202 @@
             box-sizing: border-box;
             font-family: 'Tajawal', sans-serif;
         }
-        
         body {
             background-color: #f5f7fa;
             color: #333;
-            padding: 20px;
+            padding: 15px;
         }
-        
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-        
         header {
             background: linear-gradient(135deg, #2c7744, #1e5631);
             color: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
         h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 8px;
             text-align: center;
         }
-        
         .subtitle {
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             opacity: 0.9;
         }
-        
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
         }
-        
         .card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
             text-align: center;
             transition: transform 0.3s ease;
         }
-        
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
         }
-        
         .card h3 {
-            font-size: 16px;
+            font-size: 15px;
             color: #555;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-        
         .card .value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #2c7744;
         }
-        
         .card.total .value {
             color: #1e5631;
         }
-        
         .card.average .value {
             color: #3a8b5c;
         }
-        
         .card.max .value {
             color: #d9534f;
         }
-        
         .filters {
             background: white;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
+            padding: 18px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
         }
-        
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            min-width: 140px;
         }
-        
         .filter-group label {
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
         }
-        
         select, input {
-            padding: 10px 15px;
+            padding: 9px 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 14px;
             background-color: #f9f9f9;
+            width: 100%;
         }
-        
         .charts-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
-        
         .chart-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-        
         .chart-card h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
+            font-size: 19px;
+            margin-bottom: 12px;
             color: #2c7744;
             text-align: center;
         }
-        
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
-        
         .data-table-container {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
-        
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: right;
             border-bottom: 1px solid #eee;
+            font-size: 14px;
         }
-        
         th {
             background-color: #f8f9fa;
             font-weight: 600;
             color: #2c7744;
         }
-        
         tr:hover {
             background-color: #f5f7fa;
         }
-        
         .pagination {
             display: flex;
             justify-content: center;
-            margin-top: 20px;
-            gap: 10px;
+            margin-top: 18px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        
         .pagination button {
-            padding: 8px 15px;
+            padding: 7px 12px;
             background-color: #2c7744;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 14px;
             transition: background-color 0.3s;
         }
-        
         .pagination button:hover {
             background-color: #1e5631;
         }
-        
         .pagination button.active {
             background-color: #1e5631;
         }
-        
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                min-width: auto;
+            }
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
             .charts-container {
                 grid-template-columns: 1fr;
             }
-            
             .chart-container {
-                height: 250px;
+                height: 240px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .chart-card h2 {
+                font-size: 17px;
+            }
+            .card .value {
+                font-size: 22px;
+            }
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
             }
         }
     </style>
@@ -219,7 +219,6 @@
             <h1>لوحة تحليل مصروفات المزرعة والإبل 2025</h1>
             <p class="subtitle">تحليل شامل للمصروفات وتوزيعها حسب النوع والشهر</p>
         </header>
-        
         <div class="summary-cards">
             <div class="card total">
                 <h3>إجمالي المصروفات</h3>
@@ -238,7 +237,6 @@
                 <div class="value">338 معاملة</div>
             </div>
         </div>
-        
         <div class="filters">
             <div class="filter-group">
                 <label for="monthFilter">الشهر</label>
@@ -254,9 +252,10 @@
                     <option value="8">أغسطس</option>
                     <option value="9">سبتمبر</option>
                     <option value="10">أكتوبر</option>
+                    <option value="11">نوفمبر</option>
+                    <option value="12">ديسمبر</option>
                 </select>
             </div>
-            
             <div class="filter-group">
                 <label for="categoryFilter">نوع المصروف</label>
                 <select id="categoryFilter">
@@ -269,7 +268,6 @@
                     <option value="أعلاف">الأعلاف</option>
                 </select>
             </div>
-            
             <div class="filter-group">
                 <label for="amountFilter">نطاق المبلغ</label>
                 <select id="amountFilter">
@@ -281,13 +279,11 @@
                     <option value="50000+">أكثر من 50,000 ريال</option>
                 </select>
             </div>
-            
             <div class="filter-group">
                 <label for="search">بحث في البيان</label>
                 <input type="text" id="search" placeholder="أدخل كلمة للبحث...">
             </div>
         </div>
-        
         <div class="charts-container">
             <div class="chart-card">
                 <h2>توزيع المصروفات حسب النوع</h2>
@@ -295,21 +291,18 @@
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
-            
             <div class="chart-card">
                 <h2>المصروفات الشهرية</h2>
                 <div class="chart-container">
                     <canvas id="monthlyChart"></canvas>
                 </div>
             </div>
-            
             <div class="chart-card">
                 <h2>أكبر 10 مصروفات</h2>
                 <div class="chart-container">
                     <canvas id="topExpensesChart"></canvas>
                 </div>
             </div>
-            
             <div class="chart-card">
                 <h2>المصروفات بدون فواتير مقابل المصروفات مع فواتير</h2>
                 <div class="chart-container">
@@ -317,7 +310,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="data-table-container">
             <h2>تفاصيل المصروفات</h2>
             <table id="expensesTable">
@@ -334,15 +326,13 @@
                     <!-- سيتم ملء الجدول بالبيانات من خلال JavaScript -->
                 </tbody>
             </table>
-            
             <div class="pagination" id="pagination">
                 <!-- سيتم إنشاء أزرار الترقيم من خلال JavaScript -->
             </div>
         </div>
     </div>
-
     <script>
-        // البيانات المستخرجة من الجدول المقدم
+        // البيانات كما وردت في الملف الأصلي
         const expensesData = [
             { id: 1, date: '2025-01-06', description: 'تحويل الى ورشة ذيب حسن هيف', amount: 0, category: 'صيانة' },
             { id: 2, date: '2025-01-06', description: 'تحويل الى منيف الاسعدى', amount: 11100, category: 'عمال' },
@@ -355,8 +345,8 @@
             { id: 9, date: '2025-01-02', description: 'مواد سباكه الابل', amount: 41, category: 'ابل' },
             { id: 10, date: '2025-01-12', description: 'شراء برسيم ورودس', amount: 14620, category: 'أعلاف' },
             { id: 11, date: '2025-01-12', description: 'شراء شعير للابل', amount: 25600, category: 'أعلاف' },
-            { id: 12, date: '2025-01-12', description: 'تحويل الى مؤسسة اختصاصنا ( تسويه فواتير )', amount: 16300, category: 'مزرعة' },
-            { id: 13, date: '2025-01-05', description: 'فواتير الابل', amount: 462, category: 'ابل' },
+            { id: 12, date: '2025-01-05', description: 'تحويل الى مؤسسة اختصاصنا ( تسويه فواتير )', amount: 16300, category: 'مزرعة' },
+            { id: 13, date: '2025-01-04', description: 'فواتير الابل', amount: 462, category: 'ابل' },
             { id: 14, date: '2024-12-26', description: 'فواتير ابوحوش', amount: 1147, category: 'مزرعة' },
             { id: 15, date: '2025-01-04', description: 'فواتير الابل', amount: 2162, category: 'ابل' },
             { id: 16, date: '2024-12-18', description: 'فواتير محمد حسين', amount: 641, category: 'مزرعة' },
@@ -681,14 +671,11 @@
 
         // إجمالي المصروفات
         const totalExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-        
         // تحديث البطاقات الإحصائية
         document.querySelector('.card.total .value').textContent = totalExpenses.toLocaleString('ar-SA') + ' ريال';
         document.querySelector('.summary-cards .card:nth-child(2) .value').textContent = Math.round(totalExpenses / 12).toLocaleString('ar-SA') + ' ريال';
-        
         const maxExpense = Math.max(...expensesData.map(expense => expense.amount));
         document.querySelector('.summary-cards .card:nth-child(3) .value').textContent = maxExpense.toLocaleString('ar-SA') + ' ريال';
-        
         document.querySelector('.summary-cards .card:nth-child(4) .value').textContent = expensesData.length + ' معاملة';
 
         // تصنيف البيانات حسب النوع
@@ -743,13 +730,11 @@
         // إنشاء مخطط المصروفات الشهرية
         const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
                        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-        
         const monthlyData = [];
         for (let i = 1; i <= 12; i++) {
             const monthKey = i.toString().padStart(2, '0');
             monthlyData.push(monthlyTotals[monthKey] || 0);
         }
-
         const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
             type: 'bar',
             data: {
@@ -783,7 +768,6 @@
             .filter(expense => expense.amount > 0)
             .sort((a, b) => b.amount - a.amount)
             .slice(0, 10);
-        
         const topExpensesChart = new Chart(document.getElementById('topExpensesChart'), {
             type: 'bar',
             data: {
@@ -817,11 +801,9 @@
         const withInvoice = expensesData.filter(expense => 
             expense.description.includes('فواتير') || expense.description.includes('فاتورة')
         ).reduce((sum, expense) => sum + expense.amount, 0);
-        
         const withoutInvoice = expensesData.filter(expense => 
             !expense.description.includes('فواتير') && !expense.description.includes('فاتورة')
         ).reduce((sum, expense) => sum + expense.amount, 0);
-
         const invoiceChart = new Chart(document.getElementById('invoiceChart'), {
             type: 'pie',
             data: {
@@ -854,17 +836,15 @@
             const categoryFilter = document.getElementById('categoryFilter').value;
             const amountFilter = document.getElementById('amountFilter').value;
             const searchTerm = document.getElementById('search').value.toLowerCase();
-            
+
             filteredData = expensesData.filter(expense => {
                 // تصفية حسب الشهر
                 if (monthFilter !== 'all' && expense.date) {
                     const month = expense.date.split('-')[1];
                     if (month !== monthFilter) return false;
                 }
-                
                 // تصفية حسب النوع
                 if (categoryFilter !== 'all' && expense.category !== categoryFilter) return false;
-                
                 // تصفية حسب نطاق المبلغ
                 if (amountFilter !== 'all') {
                     const amount = expense.amount;
@@ -876,13 +856,11 @@
                         case '50000+': if (amount < 50000) return false; break;
                     }
                 }
-                
                 // تصفية حسب البحث
                 if (searchTerm && !expense.description.toLowerCase().includes(searchTerm)) return false;
-                
                 return true;
             });
-            
+
             currentPage = 1;
             renderTable();
             updatePagination();
@@ -891,34 +869,32 @@
         function renderTable() {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
-            
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageData = filteredData.slice(startIndex, endIndex);
-            
+
             pageData.forEach(expense => {
                 const row = document.createElement('tr');
-                
                 const idCell = document.createElement('td');
                 idCell.textContent = expense.id;
                 row.appendChild(idCell);
-                
+
                 const dateCell = document.createElement('td');
                 dateCell.textContent = expense.date || '-';
                 row.appendChild(dateCell);
-                
+
                 const descriptionCell = document.createElement('td');
                 descriptionCell.textContent = expense.description;
                 row.appendChild(descriptionCell);
-                
+
                 const amountCell = document.createElement('td');
                 amountCell.textContent = expense.amount.toLocaleString('ar-SA') + ' ريال';
                 row.appendChild(amountCell);
-                
+
                 const categoryCell = document.createElement('td');
                 categoryCell.textContent = expense.category;
                 row.appendChild(categoryCell);
-                
+
                 tableBody.appendChild(row);
             });
         }
@@ -926,9 +902,7 @@
         function updatePagination() {
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = '';
-            
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            
             for (let i = 1; i <= totalPages; i++) {
                 const button = document.createElement('button');
                 button.textContent = i;
