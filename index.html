@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -104,11 +103,45 @@
       color: #fff;
     }
     a.btn.primary:hover { background: #0284c7; }
+    a.btn.compare {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      border-color: #7c3aed;
+      color: #fff;
+    }
+    a.btn.compare:hover { background: #7c3aed; }
     footer {
       text-align: center;
       margin-top: 22px;
       color: #6b7280;
       font-size: 13px;
+    }
+    
+    /* تصميم خاص للبطاقة الجديدة */
+    .card.comparison {
+      background: linear-gradient(135deg, #fef7ff, #faf5ff);
+      border: 1px solid #e9d5ff;
+    }
+    .card.comparison h2 {
+      color: #7c3aed;
+    }
+    .comparison-features {
+      margin-bottom: 18px;
+    }
+    .comparison-features ul {
+      margin: 0;
+      padding-right: 20px;
+      list-style-type: none;
+    }
+    .comparison-features li {
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .comparison-features li:before {
+      content: "✓";
+      position: absolute;
+      right: -20px;
+      color: #10b981;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -136,6 +169,24 @@
         <div class="actions">
           <a class="btn primary" href="مصاريف المزرعة - 2024.html">فتح لوحة 2024</a>
           <a class="btn" href="مصاريف المزرعة - 2024.html" target="_blank" rel="noopener">فتح في تبويب جديد</a>
+        </div>
+      </div>
+      
+      <!-- البطاقة الجديدة للمقارنة -->
+      <div class="card comparison">
+        <span class="badge">مقارنة</span>
+        <h2>مقارنة مصاريف 2024 و 2025</h2>
+        <p>تحليل مقارن شامل بين مصاريف العامين مع إحصائيات وتقارير تفصيلية.</p>
+        <div class="comparison-features">
+          <ul>
+            <li>مقارنة المصاريف الشهرية والسنوية</li>
+            <li>تحليل اتجاهات الإنفاق</li>
+            <li>مقارنة الأداء والمؤشرات</li>
+          </ul>
+        </div>
+        <div class="actions">
+          <a class="btn compare" href="compare.html">فتح المقارنة</a>
+          <a class="btn" href="compare.html" target="_blank" rel="noopener">فتح في تبويب جديد</a>
         </div>
       </div>
     </div>
